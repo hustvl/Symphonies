@@ -1,0 +1,21 @@
+# Refer to
+# - https://hydra.cc/docs/tutorials/basic/your_first_app/defaults/
+# - https://hydra.cc/docs/patterns/configuring_experiments/
+# for more information about config group defaults
+defaults:
+  - datasets: semantic_kitti
+  - models: bvt
+  - schedules: adamw_lr1e-4_30e
+  - _self_
+
+hydra:
+  mode: MULTIRUN  # otherwise the DDP output files may be in a mess, see https://github.com/Lightning-AI/lightning/pull/11617
+  sweep:
+    dir: outputs/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+trainer:
+  devices: 4
+  accelerator: gpu
+  strategy: ddp
+  sync_batchnorm: True
+  # precision: 16

@@ -1,0 +1,20 @@
+# @package _global_
+
+solver:
+  optimizer:
+    type: AdamW
+    cfgs:
+      lr: 2.0e-4
+      weight_decay: 1.0e-4
+    # paramwise_cfg:
+    #   - name: backbone
+    #     lr_mult: 0.1
+  scheduler:
+    type: MultiStepLR
+    cfgs:
+      milestones: [25]
+      gamma: 0.1
+
+trainer:
+  max_epochs: 30
+  # gradient_clip_val: 35.0

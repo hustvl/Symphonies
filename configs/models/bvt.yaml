@@ -1,0 +1,16 @@
+# @package _global_
+
+model:
+  type: BVT
+  cfgs:
+    encoder:
+      type: hrnet32
+      cfgs:
+        pretrained: True
+        # hub_cfg:
+        #   repo_or_dir: rwightman/gen-efficientnet-pytorch:master
+        #   model: tf_efficientnet_b7_ns
+        #   pretrained: True
+        # in_channels: [3, 32, 48, 80, 224, 2560]
+    view_scales: [1, 2, 4, 8]
+    criterions: [ce_ssc, sem_scal, geo_scal]
