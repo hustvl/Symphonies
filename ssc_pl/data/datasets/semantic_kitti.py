@@ -37,15 +37,15 @@ class SemanticKITTI(Dataset):
     def __init__(
         self,
         split,
-        root,
+        data_root,
         label_root,
         project_scale=2,
         frustum_size=4,
         context_prior=False,
     ):
         super().__init__()
-        self.root = root
-        self.label_root = osp.join(label_root, 'labels')
+        self.data_root = data_root
+        self.label_root = label_root
         self.sequences = SPLITS[split]
         self.split = split
 
@@ -63,12 +63,13 @@ class SemanticKITTI(Dataset):
         self.scans = []
         for sequence in self.sequences:
             calib = self.read_calib(
-                osp.join(self.root, 'dataset', 'sequences', sequence, 'calib.txt'))
+                osp.join(self.data_root, 'dataset', 'sequences', sequence, 'calib.txt'))
             P = calib['P2']
             T_velo_2_cam = calib['Tr']
             proj_matrix = P @ T_velo_2_cam
 
-            glob_path = osp.join(self.root, 'dataset', 'sequences', sequence, 'voxels', '*.bin')
+            glob_path = osp.join(self.data_root, 'dataset', 'sequences', sequence, 'voxels',
+                                 '*.bin')
             for voxel_path in glob.glob(glob_path):
                 self.scans.append({
                     'sequence': sequence,
@@ -143,7 +144,7 @@ class SemanticKITTI(Dataset):
         label['frustums_masks'] = frustums_masks
         label['frustums_class_dists'] = frustums_class_dists
 
-        img_path = osp.join(self.root, 'dataset', 'sequences', sequence, 'image_2',
+        img_path = osp.join(self.data_root, 'dataset', 'sequences', sequence, 'image_2',
                             frame_id + '.png')
         img = Image.open(img_path).convert('RGB')
         img = np.asarray(img, dtype=np.float32) / 255.0

@@ -44,7 +44,7 @@ def sigmoid_focal_loss(inputs,
     """
     prob = inputs.sigmoid()
     ce_loss = F.binary_cross_entropy_with_logits(
-        inputs, targets, reduction="none")
+        inputs, targets, reduction='none')
     p_t = prob * targets + (1 - prob) * (1 - targets)
     loss = ce_loss * ((1 - p_t)**gamma)
 
@@ -96,7 +96,7 @@ def sigmoid_ce_loss(
         Loss tensor
     """
     loss = F.binary_cross_entropy_with_logits(
-        inputs, targets, reduction="none")
+        inputs, targets, reduction='none')
 
     return loss.mean(1).sum() / num_masks
 
@@ -179,7 +179,7 @@ class SetCriterion(nn.Module):
         self.dn_losses = dn_losses
         empty_weight = torch.ones(self.num_classes + 1)
         empty_weight[-1] = self.eos_coef
-        self.register_buffer("empty_weight", empty_weight)
+        self.register_buffer('empty_weight', empty_weight)
 
         # pointwise mask loss parameters
         self.num_points = num_points
@@ -192,14 +192,14 @@ class SetCriterion(nn.Module):
 
     def loss_labels_ce(self, outputs, targets, indices, num_masks):
         """Classification loss (NLL)
-        targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
+        targets dicts must contain the key 'labels' containing a tensor of dim [nb_target_boxes]
         """
-        assert "pred_logits" in outputs
-        src_logits = outputs["pred_logits"].float()
+        assert 'pred_logits' in outputs
+        src_logits = outputs['pred_logits'].float()
 
         idx = self._get_src_permutation_idx(indices)
         target_classes_o = torch.cat(
-            [t["labels"][J] for t, (_, J) in zip(targets, indices)])
+            [t['labels'][J] for t, (_, J) in zip(targets, indices)])
         target_classes = torch.full(
             src_logits.shape[:2],
             self.num_classes,
@@ -209,19 +209,19 @@ class SetCriterion(nn.Module):
 
         loss_ce = F.cross_entropy(
             src_logits.transpose(1, 2), target_classes, self.empty_weight)
-        losses = {"loss_ce": loss_ce}
+        losses = {'loss_ce': loss_ce}
         return losses
 
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
         """Classification loss (Binary focal loss)
-        targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
+        targets dicts must contain the key 'labels' containing a tensor of dim [nb_target_boxes]
         """
         assert 'pred_logits' in outputs
         src_logits = outputs['pred_logits']
 
         idx = self._get_src_permutation_idx(indices)
         target_classes_o = torch.cat(
-            [t["labels"][J] for t, (_, J) in zip(targets, indices)])
+            [t['labels'][J] for t, (_, J) in zip(targets, indices)])
         target_classes = torch.full(
             src_logits.shape[:2],
             self.num_classes,
@@ -250,7 +250,7 @@ class SetCriterion(nn.Module):
 
     def loss_boxes(self, outputs, targets, indices, num_boxes):
         """Compute the losses related to the bounding boxes, the L1 regression loss and the GIoU loss
-           targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
+           targets dicts must contain the key 'boxes' containing a tensor of dim [nb_target_boxes, 4]
            The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
         """
         assert 'pred_boxes' in outputs
@@ -273,7 +273,7 @@ class SetCriterion(nn.Module):
 
     def loss_boxes_panoptic(self, outputs, targets, indices, num_boxes):
         """Compute the losses related to the bounding boxes, the L1 regression loss and the GIoU loss
-           targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
+           targets dicts must contain the key 'boxes' containing a tensor of dim [nb_target_boxes, 4]
            The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
         """
         assert 'pred_boxes' in outputs
@@ -301,15 +301,15 @@ class SetCriterion(nn.Module):
 
     def loss_masks(self, outputs, targets, indices, num_masks):
         """Compute the losses related to the masks: the focal loss and the dice loss.
-        targets dicts must contain the key "masks" containing a tensor of dim [nb_target_boxes, h, w]
+        targets dicts must contain the key 'masks' containing a tensor of dim [nb_target_boxes, h, w]
         """
-        assert "pred_masks" in outputs
+        assert 'pred_masks' in outputs
 
         src_idx = self._get_src_permutation_idx(indices)
         tgt_idx = self._get_tgt_permutation_idx(indices)
-        src_masks = outputs["pred_masks"]
+        src_masks = outputs['pred_masks']
         src_masks = src_masks[src_idx]
-        masks = [t["masks"] for t in targets]
+        masks = [t['masks'] for t in targets]
         # TODO use valid to mask invalid areas due to padding in loss
         target_masks, valid = nested_tensor_from_tensor_list(masks).decompose()
         target_masks = target_masks.to(src_masks)
@@ -343,9 +343,9 @@ class SetCriterion(nn.Module):
         ).squeeze(1)
 
         losses = {
-            "loss_mask": sigmoid_ce_loss_jit(point_logits, point_labels,
+            'loss_mask': sigmoid_ce_loss_jit(point_logits, point_labels,
                                              num_masks),
-            "loss_dice": dice_loss_jit(point_logits, point_labels, num_masks),
+            'loss_dice': dice_loss_jit(point_logits, point_labels, num_masks),
         }
 
         del src_masks
@@ -386,7 +386,7 @@ class SetCriterion(nn.Module):
             'boxes':
             self.loss_boxes_panoptic if self.panoptic_on else self.loss_boxes,
         }
-        assert loss in loss_map, f"do you really want to compute {loss} loss?"
+        assert loss in loss_map, f'do you really want to compute {loss} loss?'
         return loss_map[loss](outputs, targets, indices, num_masks)
 
     def forward(self, outputs, targets, mask_dict=None):
@@ -398,11 +398,11 @@ class SetCriterion(nn.Module):
         """
         outputs_without_aux = {
             k: v
-            for k, v in outputs.items() if k != "aux_outputs"
+            for k, v in outputs.items() if k != 'aux_outputs'
         }
 
         # Retrieve the matching between the outputs of the last layer and the targets
-        if self.dn is not "no" and mask_dict is not None:
+        if self.dn != 'no' and mask_dict is not None:
             output_known_lbs_bboxes, num_tgt, single_pad, scalar = self.prep_for_dn(
                 mask_dict)
             exc_idx = []
@@ -420,7 +420,7 @@ class SetCriterion(nn.Module):
                 exc_idx.append((output_idx, tgt_idx))
         indices = self.matcher(outputs_without_aux, targets)
         # Compute the average number of target boxes across all nodes, for normalization purposes
-        num_masks = sum(len(t["labels"]) for t in targets)
+        num_masks = sum(len(t['labels']) for t in targets)
         num_masks = torch.as_tensor([num_masks],
                                     dtype=torch.float,
                                     device=next(iter(outputs.values())).device)
@@ -434,7 +434,7 @@ class SetCriterion(nn.Module):
             losses.update(
                 self.get_loss(loss, outputs, targets, indices, num_masks))
 
-        if self.dn != "no" and mask_dict is not None:
+        if self.dn != 'no' and mask_dict is not None:
             l_dict = {}
             for loss in self.dn_losses:
                 l_dict.update(
@@ -442,31 +442,31 @@ class SetCriterion(nn.Module):
                                   exc_idx, num_masks * scalar))
             l_dict = {k + f'_dn': v for k, v in l_dict.items()}
             losses.update(l_dict)
-        elif self.dn != "no":
+        elif self.dn != 'no':
             l_dict = dict()
             l_dict['loss_bbox_dn'] = torch.as_tensor(0.).to('cuda')
             l_dict['loss_giou_dn'] = torch.as_tensor(0.).to('cuda')
             l_dict['loss_ce_dn'] = torch.as_tensor(0.).to('cuda')
-            if self.dn == "seg":
+            if self.dn == 'seg':
                 l_dict['loss_mask_dn'] = torch.as_tensor(0.).to('cuda')
                 l_dict['loss_dice_dn'] = torch.as_tensor(0.).to('cuda')
             losses.update(l_dict)
 
         # In case of auxiliary losses, we repeat this process with the output of each intermediate layer.
-        if "aux_outputs" in outputs:
-            for i, aux_outputs in enumerate(outputs["aux_outputs"]):
+        if 'aux_outputs' in outputs:
+            for i, aux_outputs in enumerate(outputs['aux_outputs']):
                 indices = self.matcher(aux_outputs, targets)
                 for loss in self.losses:
                     l_dict = self.get_loss(loss, aux_outputs, targets, indices,
                                            num_masks)
-                    l_dict = {k + f"_{i}": v for k, v in l_dict.items()}
+                    l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                     losses.update(l_dict)
                 if 'interm_outputs' in outputs:
                     start = 0
                 else:
                     start = 1
                 if i >= start:
-                    if self.dn != "no" and mask_dict is not None:
+                    if self.dn != 'no' and mask_dict is not None:
                         out_ = output_known_lbs_bboxes['aux_outputs'][i]
                         l_dict = {}
                         for loss in self.dn_losses:
@@ -475,7 +475,7 @@ class SetCriterion(nn.Module):
                                               num_masks * scalar))
                         l_dict = {k + f'_dn_{i}': v for k, v in l_dict.items()}
                         losses.update(l_dict)
-                    elif self.dn != "no":
+                    elif self.dn != 'no':
                         l_dict = dict()
                         l_dict[f'loss_bbox_dn_{i}'] = torch.as_tensor(0.).to(
                             'cuda')
@@ -483,7 +483,7 @@ class SetCriterion(nn.Module):
                             'cuda')
                         l_dict[f'loss_ce_dn_{i}'] = torch.as_tensor(0.).to(
                             'cuda')
-                        if self.dn == "seg":
+                        if self.dn == 'seg':
                             l_dict[f'loss_mask_dn_{i}'] = torch.as_tensor(
                                 0.).to('cuda')
                             l_dict[f'loss_dice_dn_{i}'] = torch.as_tensor(
@@ -502,20 +502,20 @@ class SetCriterion(nn.Module):
         return losses
 
     def __repr__(self):
-        head = "Criterion " + self.__class__.__name__
+        head = 'Criterion ' + self.__class__.__name__
         body = [
-            "matcher: {}".format(self.matcher.__repr__(_repr_indent=8)),
-            "losses: {}".format(self.losses),
-            "weight_dict: {}".format(self.weight_dict),
-            "num_classes: {}".format(self.num_classes),
-            "eos_coef: {}".format(self.eos_coef),
-            "num_points: {}".format(self.num_points),
-            "oversample_ratio: {}".format(self.oversample_ratio),
-            "importance_sample_ratio: {}".format(self.importance_sample_ratio),
+            'matcher: {}'.format(self.matcher.__repr__(_repr_indent=8)),
+            'losses: {}'.format(self.losses),
+            'weight_dict: {}'.format(self.weight_dict),
+            'num_classes: {}'.format(self.num_classes),
+            'eos_coef: {}'.format(self.eos_coef),
+            'num_points: {}'.format(self.num_points),
+            'oversample_ratio: {}'.format(self.oversample_ratio),
+            'importance_sample_ratio: {}'.format(self.importance_sample_ratio),
         ]
         _repr_indent = 4
-        lines = [head] + [" " * _repr_indent + line for line in body]
-        return "\n".join(lines)
+        lines = [head] + [' ' * _repr_indent + line for line in body]
+        return '\n'.join(lines)
 
 
 def get_uncertain_point_coords_with_randomness(coarse_logits, uncertainty_func,
@@ -601,9 +601,9 @@ def _process_criterion_info(class_weight,
                             box_loss,
                             two_stage=True,
                             deep_supervision=True):
-    weight_dict = {"loss_ce": class_weight}
-    weight_dict.update({"loss_mask": mask_weight, "loss_dice": dice_weight})
-    weight_dict.update({"loss_bbox": box_weight, "loss_giou": giou_weight})
+    weight_dict = {'loss_ce': class_weight}
+    weight_dict.update({'loss_mask': mask_weight, 'loss_dice': dice_weight})
+    weight_dict.update({'loss_bbox': box_weight, 'loss_giou': giou_weight})
     # two stage is the query selection scheme
     if two_stage:
         interm_weight_dict = {}
@@ -612,27 +612,27 @@ def _process_criterion_info(class_weight,
              for k, v in weight_dict.items()})
         weight_dict.update(interm_weight_dict)
     # denoising training
-    if dn == "standard":
+    if dn == 'standard':
         weight_dict.update({
-            k + f"_dn": v
+            k + f'_dn': v
             for k, v in weight_dict.items()
-            if k != "loss_mask" and k != "loss_dice"
+            if k != 'loss_mask' and k != 'loss_dice'
         })
-        dn_losses = ["labels", "boxes"]
-    elif dn == "seg":
-        weight_dict.update({k + f"_dn": v for k, v in weight_dict.items()})
-        dn_losses = ["labels", "masks", "boxes"]
+        dn_losses = ['labels', 'boxes']
+    elif dn == 'seg':
+        weight_dict.update({k + f'_dn': v for k, v in weight_dict.items()})
+        dn_losses = ['labels', 'masks', 'boxes']
     else:
         dn_losses = []
     if deep_supervision:
         aux_weight_dict = {}
         for i in range(dec_layers):
             aux_weight_dict.update(
-                {k + f"_{i}": v
+                {k + f'_{i}': v
                  for k, v in weight_dict.items()})
         weight_dict.update(aux_weight_dict)
     if box_loss:
-        losses = ["labels", "masks", "boxes"]
+        losses = ['labels', 'masks', 'boxes']
     else:
-        losses = ["labels", "masks"]
+        losses = ['labels', 'masks']
     return weight_dict, losses, dn_losses

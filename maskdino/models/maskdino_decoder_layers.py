@@ -343,7 +343,12 @@ class MaskDINODecoder(nn.Module):
         outputs_coord_list = torch.stack(outputs_coord_list)
         return outputs_coord_list
 
-    def forward(self, x, mask_features, masks, targets=None):
+    def forward(self,
+                x,
+                mask_features,
+                masks,
+                targets=None,
+                return_queries=False):
         """
         :param x: input, a list of multi-scale feature
         :param mask_features: is the per-pixel embeddings with resolution 1/4 of the original image,
@@ -489,8 +494,8 @@ class MaskDINODecoder(nn.Module):
         if mask_dict is not None:
             predictions_mask = torch.stack(predictions_mask)
             predictions_class = torch.stack(predictions_class)
-            predictions_class, out_boxes,predictions_mask=\
-                self.dn_post_process(predictions_class,out_boxes,mask_dict,predictions_mask)
+            predictions_class, out_boxes, predictions_mask = self.dn_post_process(
+                predictions_class, out_boxes, mask_dict, predictions_mask)
             predictions_class, predictions_mask = list(
                 predictions_class), list(predictions_mask)
         elif self.training:  # this is to insure self.label_enc participate in the model
@@ -510,6 +515,8 @@ class MaskDINODecoder(nn.Module):
         }
         if self.two_stage:
             out['interm_outputs'] = interm_outputs
+        if return_queries:
+            out['queries'] = hs[-1]
         return out, mask_dict
 
     def forward_prediction_heads(self, output, mask_features, pred_mask=True):

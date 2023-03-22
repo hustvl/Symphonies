@@ -14,9 +14,9 @@ def build_from_configs(cfg: DictConfig):
     if cfg.get('dataset'):
         cfg.data.datasets.type = cfg.dataset
     if cfg.get('data_root'):
-        cfg.data.datasets.cfgs.root = cfg.data_root
-    if cfg.get('preprocess_root'):
-        cfg.data.datasets.cfgs.preprocess_root = cfg.preprocess_root
+        cfg.data.datasets.cfgs.data_root = cfg.data_root
+    if cfg.get('label_root'):
+        cfg.data.datasets.cfgs.label_root = cfg.label_root
 
     output_dir = 'outputs'
     callbacks = {

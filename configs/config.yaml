@@ -4,7 +4,7 @@
 # for more information about config group defaults
 defaults:
   - datasets: semantic_kitti
-  - models: bvt
+  - models: symphonies
   - schedules: adamw_lr1e-4_30e
   - _self_
 
