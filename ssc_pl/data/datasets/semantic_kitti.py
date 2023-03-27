@@ -39,6 +39,7 @@ class SemanticKITTI(Dataset):
         split,
         data_root,
         label_root,
+        depth_root=None,
         project_scale=2,
         frustum_size=4,
         context_prior=False,
@@ -49,6 +50,7 @@ class SemanticKITTI(Dataset):
         self.sequences = SPLITS[split]
         self.split = split
 
+        self.depth_root = depth_root
         self.frustum_size = frustum_size
         self.project_scale = project_scale
         self.output_scale = int(self.project_scale / 2)
@@ -127,6 +129,10 @@ class SemanticKITTI(Dataset):
             target_1_8 = np.load(target_8_path)
             CP_mega_matrix = compute_CP_mega_matrix(target_1_8)
             label['CP_mega_matrix'] = CP_mega_matrix
+
+        if self.depth_root is not None:
+            depth_path = osp.join(self.depth_root, 'sequences', sequence, frame_id + '.npy')
+            data['depth'] = np.load(depth_path)
 
         # Compute the masks, each indicate the voxels of a local frustum
         if self.split != 'test':

@@ -3,6 +3,7 @@
 model:
   type: Symphonies
   cfgs:
+    embed_dims: 128
     encoder:
       type: MMDetWrapper
       cfgs:

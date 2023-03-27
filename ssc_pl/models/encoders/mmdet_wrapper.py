@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from importlib import import_module
 
@@ -12,6 +13,9 @@ class MMDetWrapper(nn.Module):
         import_module(custom_imports)
         config = Config.fromfile(config_path)
         self.model = MODELS.build(config.model)
+        if checkpoint_path is not None:
+            self.model.load_state_dict(torch.load(checkpoint_path))
+        self.hidden_dims = config.model.panoptic_head.decoder.hidden_dim
         # TODO: Remove the prediction head as the unused parameters in DDP.
 
     def forward(self, x):
@@ -21,4 +25,4 @@ class MMDetWrapper(nn.Module):
             features, masks=None)
         predictions = self.model.panoptic_head.predictor(
             multi_scale_features, mask_features, masks=None, return_queries=True)
-        return predictions
+        return predictions[0]

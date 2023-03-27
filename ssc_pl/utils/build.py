@@ -17,6 +17,8 @@ def build_from_configs(cfg: DictConfig):
         cfg.data.datasets.cfgs.data_root = cfg.data_root
     if cfg.get('label_root'):
         cfg.data.datasets.cfgs.label_root = cfg.label_root
+    if cfg.get('depth_root'):
+        cfg.data.datasets.cfgs.depth_root = cfg.depth_root
 
     output_dir = 'outputs'
     callbacks = {
