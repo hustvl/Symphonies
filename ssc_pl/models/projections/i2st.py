@@ -49,16 +49,20 @@ class I2ST(nn.Module):
 
         assert bs == 1
         inst_masks, keep = self.panoptic_postprocess(pred_logits, pred_masks)
-        inst_queries = inst_queries[keep].unsqueeze(0)
-        inst_masks = inst_masks.unsqueeze(0)
-        inst_pos = self.pos_embed(self.gather_mask_pos(depth, inst_masks, K, E))
+        if keep.sum().item() != 0:
+            inst_queries = inst_queries[keep].unsqueeze(0)
+            inst_masks = inst_masks.unsqueeze(0)
+            inst_pos = self.pos_embed(self.gather_mask_pos(depth, inst_masks, K, E))
 
         query_embed_src = query_embed
         query_embed = query_embed[fov_mask].unsqueeze(0)
         query_pos = self.pos_embed(query_pos[fov_mask].unsqueeze(0))
 
         for layer in self.layers:
-            query_embed = layer(query_embed + query_pos, inst_queries + inst_pos, inst_queries)
+            if keep.sum().item() != 0:
+                query_embed = layer(query_embed + query_pos, inst_queries + inst_pos, inst_queries)
+            else:
+                query_embed = layer(query_embed + query_pos, inst_queries, inst_queries)
         query_embed_src[fov_mask] = query_embed.squeeze(0)
         query_embed = query_embed_src
 
@@ -89,6 +93,8 @@ class I2ST(nn.Module):
         pred_masks = pred_masks.sigmoid()
 
         keep = labels.ne(num_classes) & (scores > self.score_thr)
+        if keep.sum().item() == 0:
+            return pred_masks, keep
         scores = scores[keep]
         pred_masks = pred_masks[keep]
 

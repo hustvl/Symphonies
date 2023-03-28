@@ -14,7 +14,9 @@ class MMDetWrapper(nn.Module):
         config = Config.fromfile(config_path)
         self.model = MODELS.build(config.model)
         if checkpoint_path is not None:
-            self.model.load_state_dict(torch.load(checkpoint_path))
+            self.model.load_state_dict(
+                torch.load(checkpoint_path, map_location=torch.device('cpu'))
+            )  # otherwise all the processes will put the loaded weight on rank 0 and may lead to CUDA OOM
         self.hidden_dims = config.model.panoptic_head.decoder.hidden_dim
         # TODO: Remove the prediction head as the unused parameters in DDP.
 

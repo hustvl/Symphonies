@@ -11,3 +11,9 @@ model:
         custom_imports: maskdino
         checkpoint_path: ../../backups/maskdino_r50_50e_300q_panoptic_pq53.0.pth
     criterions: [ce_ssc, sem_scal, geo_scal, frustum]
+
+solver:
+  optimizer:
+    paramwise_cfg:
+      - name: encoder
+        lr_mult: 0.1
