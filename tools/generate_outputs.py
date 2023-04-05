@@ -25,9 +25,14 @@ def main(cfg: DictConfig):
     data_loader = dls[-1]
     output_dir = osp.join('outputs', cfg.data.datasets.type)
 
-    model = getattr(models,
-                    cfg.model.type).load_from_checkpoint(cfg.model.ckpt_path, **cfg.model.cfgs,
-                                                         **cfg.solver, **meta_info)
+    if cfg.model.get('ckpt_path'):
+        model = getattr(models,
+                        cfg.model.type).load_from_checkpoint(cfg.model.ckpt_path, **cfg.model.cfgs,
+                                                             **cfg.solver, **meta_info)
+    else:
+        import warnings
+        warnings.warn('No checkpoint being loaded.')
+        model = getattr(models, cfg.model.type)(**cfg.model.cfgs, **cfg.solver, **meta_info)
     model.cuda()
     model.eval()
 

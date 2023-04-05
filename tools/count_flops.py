@@ -16,7 +16,7 @@ def main(cfg: DictConfig):
     dls, meta_info = build_data_loaders(cfg.data)
     model = getattr(models, cfg.model.type)(**cfg.model.cfgs, **cfg.solver, **meta_info)
     flops = FlopCountAnalysis(model, next(iter(dls[1]))[0])
-    print('[fvcore] FLOPs: {:.2f} G'.format(flops.total() / 1e9))  # it is actually MACs
+    print(f'[fvcore] FLOPs: {flops.total() / 1e9:.2f} G')  # it is actually MACs
 
 
 if __name__ == '__main__':

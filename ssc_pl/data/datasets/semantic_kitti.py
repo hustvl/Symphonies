@@ -117,9 +117,9 @@ class SemanticKITTI(Dataset):
             projected_pix, fov_mask, pix_z = vox2pix(T_velo_2_cam, cam_K, self.voxel_origin,
                                                      self.voxel_size * scale_3d, self.img_shape,
                                                      self.scene_size)
-            data['projected_pix_{}'.format(scale_3d)] = projected_pix
-            data['pix_z_{}'.format(scale_3d)] = pix_z
-            data['fov_mask_{}'.format(scale_3d)] = fov_mask
+            data[f'projected_pix_{scale_3d}'] = projected_pix
+            data[f'pix_z_{scale_3d}'] = pix_z
+            data[f'fov_mask_{scale_3d}'] = fov_mask
 
         target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
         target = np.load(target_1_path)
@@ -137,8 +137,8 @@ class SemanticKITTI(Dataset):
         # Compute the masks, each indicate the voxels of a local frustum
         if self.split != 'test':
             frustums_masks, frustums_class_dists = compute_local_frustums(
-                data['projected_pix_{}'.format(self.output_scale)],
-                data['pix_z_{}'.format(self.output_scale)],
+                data[f'projected_pix_{self.output_scale}'],
+                data[f'pix_z_{self.output_scale}'],
                 target,
                 self.img_shape,
                 n_classes=20,

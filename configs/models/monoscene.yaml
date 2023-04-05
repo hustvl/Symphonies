@@ -17,3 +17,8 @@ model:
     view_scales: [1, 2, 4, 8]
     context_prior: True
     criterions: [ce_ssc, relation, sem_scal, geo_scal, frustum]
+
+data:
+  datasets:
+    cfgs:
+      context_prior: True

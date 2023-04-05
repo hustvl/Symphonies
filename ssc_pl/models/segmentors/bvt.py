@@ -98,15 +98,9 @@ class BVT(MonoScene):
     def forward(self, inputs):
         x2ds = self.encoder(inputs['img'])
 
-        projected_pix = inputs['projected_pix_{}'.format(self.volume_scale)]
-        fov_mask = inputs['fov_mask_{}'.format(self.volume_scale)]
-        x3ds = []
-        for i, scale_2d in enumerate(self.view_scales):
-            x3d = self.projects[i](x2ds['1_' + str(scale_2d)],
-                                   torch.div(projected_pix, scale_2d, rounding_mode='trunc'),
-                                   fov_mask)
-            x3ds.append(x3d)
-        x3d = torch.stack(x3ds).sum(dim=0)
+        projected_pix = inputs[f'projected_pix_{self.volume_scale}']
+        fov_mask = inputs[f'fov_mask_{self.volume_scale}']
+        x3d = self.project([x2ds[f'1_{s}'] for s in self.view_scales], projected_pix, fov_mask)
 
         x3d = self.voxel_embed(x3d)
         outs = self.decoder(x3d, x3d, fov_mask)

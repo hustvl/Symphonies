@@ -39,7 +39,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 2. **Generating outputs**
 
     ```shell
-    python tools/generate_outputs.py [--config-name config[.yaml]] +model.ckpt_path=/path/to/ckpt
+    python tools/generate_outputs.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
     ```
 
 ## License

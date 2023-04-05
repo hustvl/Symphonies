@@ -185,7 +185,7 @@ class MaskDINOFusionHead(MaskFormerFusionHead):
                 batch_data_samples: SampleList,
                 rescale: bool = False,
                 **kwargs) -> List[dict]:
-        """ segment without test-time aumengtation.
+        """Test segment without test-time aumengtation.
         """
         batch_img_metas = [
             data_sample.metainfo for data_sample in batch_data_samples

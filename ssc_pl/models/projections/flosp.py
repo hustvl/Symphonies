@@ -27,3 +27,18 @@ class FLoSP(nn.Module):
         feats = torch.stack(feats)
         x3d = feats.reshape(bs, c, *[s // self.project_scale for s in self.scene_size])
         return x3d
+
+
+class MultiScaleFLoSP(nn.Module):
+
+    def __init__(self, scene_size, view_scales, volume_scale):
+        super().__init__()
+        self.view_scales = view_scales
+        self.projects = nn.ModuleList([FLoSP(scene_size, volume_scale) for _ in view_scales])
+
+    def forward(self, feats, projected_pix, fov_mask):
+        x3ds = []
+        for i, scale_2d in enumerate(self.view_scales):
+            x3d = self.projects[i](feats[i], torch.div(projected_pix, scale_2d), fov_mask)
+            x3ds.append(x3d)
+        return torch.stack(x3ds).sum(dim=0)
