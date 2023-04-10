@@ -1,3 +1,3 @@
 from .flosp import FLoSP, MultiScaleFLoSP
+from .oa_flosp import OccAwareFLoSP
 from .cvt import CrossTrP
-from .i2st import I2ST

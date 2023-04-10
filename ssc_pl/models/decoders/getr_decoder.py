@@ -163,7 +163,7 @@ class GeometryTransformerDecoderLayer(nn.Module):
         projected_pix = projected_pix[fov_mask].unsqueeze(0)  # n, 2 -> b(1), n, 2
         kernel_feats = []
         for scale, feat in zip(scales, feats):
-            projected_pix_scale = torch.div(projected_pix, scale, rounding_mode='trunc')
+            projected_pix_scale = torch.div(projected_pix, scale, rounding_mode='floor')
             projected_pix_scale = projected_pix_scale.unsqueeze(
                 2) + self.grid_offsets  # bs, n, k, 2
             bs, c, h, w = feat.shape

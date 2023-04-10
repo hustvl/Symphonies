@@ -39,6 +39,8 @@ class MultiScaleFLoSP(nn.Module):
     def forward(self, feats, projected_pix, fov_mask):
         x3ds = []
         for i, scale_2d in enumerate(self.view_scales):
-            x3d = self.projects[i](feats[i], torch.div(projected_pix, scale_2d), fov_mask)
+            x3d = self.projects[i](feats[i],
+                                   torch.div(projected_pix, scale_2d, rounding_mode='floor'),
+                                   fov_mask)
             x3ds.append(x3d)
         return torch.stack(x3ds).sum(dim=0)

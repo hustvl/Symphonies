@@ -512,16 +512,22 @@ class HRNetMultiScaleDecoder(nn.Module):
         super().__init__()
         self.scales = scales
         self.default_scale = 4
-        hidden_channels = 256  # TODO
+        hidden_channels = 256
         self.fusion_layer = nn.Sequential(
-            nn.Conv2d(in_channels, hidden_channels, 1), nn.BatchNorm2d(hidden_channels),
-            nn.ReLU(inplace=True), nn.Conv2d(hidden_channels, channels, 1),
-            nn.BatchNorm2d(channels), nn.ReLU(inplace=True))
+            nn.Conv2d(in_channels, hidden_channels, 1),
+            nn.BatchNorm2d(hidden_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden_channels, channels, 1),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(inplace=True),
+        )
 
         self.scale_layers = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(channels, channels, 3, padding=1), nn.BatchNorm2d(channels),
-                nn.ReLU(inplace=True)) for _ in scales
+                nn.Conv2d(channels, channels, 3, padding=1),
+                nn.BatchNorm2d(channels),
+                nn.ReLU(inplace=True),
+            ) for _ in scales
         ])
 
     def forward(self, x):
