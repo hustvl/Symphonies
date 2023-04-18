@@ -16,6 +16,10 @@ def flatten_fov_from_voxels(x3d, fov_mask):
 
 
 def index_fov_back_to_voxels(x3d, fov, fov_mask):
+    assert x3d.shape[0] == fov.shape[0] == 1
+    if fov_mask.dim() == 2:
+        assert fov_mask.shape[0] == 1
+        fov_mask = fov_mask.squeeze()
     fov_concat = torch.zeros_like(x3d).flatten(2)
     fov_concat[..., fov_mask] = fov.transpose(1, 2)
     return torch.where(fov_mask, fov_concat, x3d.flatten(2)).reshape(*x3d.shape)
@@ -178,13 +182,13 @@ class GeometryTransformerDecoderLayer(nn.Module):
         feats = torch.cat(kernel_feats, dim=-1).permute(0, 2, 3, 1)  # bs, n, k*lvl, c
 
         query_embed = self.cross_attn(query_embed, feats, feats) + query_embed
-        x3d = index_fov_back_to_voxels(x3d, query_embed, fov_mask.squeeze())
+        x3d = index_fov_back_to_voxels(x3d, query_embed, fov_mask)
         query_embed = self.self_attn(query_embed, x3d) + query_embed
         query_ = self.ffn1(query_embed)
         if self.mlp_conv is not None:
-            x3d = index_fov_back_to_voxels(self.pre_conv(x3d), query_, fov_mask.squeeze())
+            x3d = index_fov_back_to_voxels(self.pre_conv(x3d), query_, fov_mask)
             x3d = self.mlp_conv(x3d)
-            query_ = flatten_fov_from_voxels(x3d, fov_mask.squeeze())
+            query_ = flatten_fov_from_voxels(x3d, fov_mask)
         query_embed = self.ffn2(query_) + query_embed
         return query_embed
 
@@ -248,7 +252,7 @@ class GeometryTransformerDecoder(nn.Module):
             query = flatten_fov_from_voxels(x3d, fov_mask_i.squeeze())
             for layer in layers:
                 query = layer(query, x2ds, scales, projected_pix_i, fov_mask_i, x3d)
-            x3d = index_fov_back_to_voxels(x3d, query, fov_mask_i.squeeze())
+            x3d = index_fov_back_to_voxels(x3d, query, fov_mask_i)
 
             x3d = upsample(x3d)
             if self.training or i == len(self.stages) - 1:

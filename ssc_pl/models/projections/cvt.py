@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from ..layers import TransformerLayer, nchw_to_nlc
 
 
-def generate_grid(grid_shape, value):
+def generate_grid(grid_shape, value, offset=0):
     """
     Args:
         grid_shape: The (scaled) shape of grid.
@@ -15,7 +15,7 @@ def generate_grid(grid_shape, value):
     """
     grid = []
     for i, (s, val) in enumerate(zip(grid_shape, value)):
-        g = torch.linspace(0, val - 1, s, dtype=torch.float)
+        g = torch.linspace(offset, val - 1 + offset, s, dtype=torch.float)
         shape_ = [1 for _ in grid_shape]
         shape_[i] = s
         g = g.reshape(1, *shape_).expand(1, *grid_shape)
@@ -94,10 +94,8 @@ class CrossTrP(nn.Module):
         self.num_queries = scene_shape[0] * scene_shape[1] * scene_shape[2]
         self.query_embed = nn.Embedding(self.num_queries, embed_dims)
 
-        offset = 0.5
-        grid = generate_grid(scene_shape, ori_scene_shape)
-        grid = (grid + offset) * voxel_size
-        grid = grid.flatten(1).transpose(0, 1)
+        grid = generate_grid(scene_shape, ori_scene_shape, offset=0.5)
+        grid = (grid * voxel_size).flatten(1).transpose(0, 1)
         self.register_buffer('query_pos', grid)
 
     def forward(self, features, K, E, voxel_origin, fov_mask, depth=None):

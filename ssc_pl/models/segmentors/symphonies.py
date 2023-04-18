@@ -3,8 +3,6 @@ import torch.nn as nn
 from .interface import PLModelInterface
 from .. import encoders
 from ..decoders import SymphoniesDecoder
-from ..projections import OccAwareFLoSP
-from ..layers import Process
 from ..losses import (ce_ssc_loss, sem_scal_loss, geo_scal_loss, frustum_proportion_loss)
 
 
@@ -30,40 +28,29 @@ class Symphonies(PLModelInterface):
         self.criterions = criterions
 
         self.encoder = getattr(encoders, encoder.type)(**encoder.cfgs)
-        in_channels = self.encoder.hidden_dims
-        self.project = OccAwareFLoSP(in_channels, scene_size, view_scales, volume_scale)
         self.decoder = SymphoniesDecoder(
             embed_dims,
             num_classes,
-            num_layers=3,
+            num_layers=4,
             scene_shape=scene_size,
             project_scale=volume_scale,
-            image_shape=(93, 305),
-            ori_image_shape=(370, 1220),
+            image_shape=(370, 1220),
             voxel_size=0.2)
         self.insts_ffn = nn.Sequential(
-            nn.Linear(in_channels, embed_dims * 4),
-            nn.GELU(),
-            nn.Linear(embed_dims * 4, embed_dims),
-        )
-        self.conv3d = nn.Sequential(Process(in_channels), nn.Conv3d(in_channels, embed_dims, 1))
+            nn.Linear(self.encoder.hidden_dims, embed_dims * 4), nn.GELU(),
+            nn.Linear(embed_dims * 4, embed_dims))
 
     def forward(self, inputs):
         pred_insts = self.encoder(inputs['img'])
         pred_insts['queries'] = self.insts_ffn(pred_insts['queries'])
-        feats = pred_insts.pop('features')
+        feats = pred_insts.pop('feats')
 
-        depth, K, E, voxel_origin, fov_mask = list(
+        depth, K, E, voxel_origin, projected_pix, fov_mask = list(
             map(lambda k: inputs[k],
-                ('depth', 'cam_K', 'cam_pose', 'voxel_origin', f'fov_mask_{self.volume_scale}')))
-        projected_pix, pix_z = list(
-            map(lambda k: inputs[k],
-                (f'projected_pix_{self.volume_scale}', f'pix_z_{self.volume_scale}')))
-        # TODO: the depth pred shape is not aligned with the original image, find the reason and fix by interpolate/crop
+                ('depth', 'cam_K', 'cam_pose', 'voxel_origin', f'projected_pix_{self.volume_scale}',
+                 f'fov_mask_{self.volume_scale}')))
 
-        x3d, fov_mask = self.project(feats, depth, projected_pix, pix_z, fov_mask)
-        x3d = self.conv3d(x3d)
-        outs = self.decoder(pred_insts, x3d, depth, K, E, voxel_origin, fov_mask)
+        outs = self.decoder(pred_insts, feats, depth, K, E, voxel_origin, projected_pix, fov_mask)
         return {'ssc_logits': outs[-1], 'aux_outputs': outs}
 
     def losses(self, preds, target):

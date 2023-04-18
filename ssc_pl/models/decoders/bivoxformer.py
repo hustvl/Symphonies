@@ -118,7 +118,7 @@ class AxialFormerLayer(nn.Module):
         #     nn.init.constant_(m.in_proj_bias, 0)
 
     def forward(self, x3d, fov_mask):
-        query_embed = flatten_fov_from_voxels(x3d, fov_mask.squeeze())
+        query_embed = flatten_fov_from_voxels(x3d, fov_mask)
         query_embed_ = self.norm1(query_embed)
         reduce_dims = ((2, 3), (2, 4), (3, 4))
         for i, attn in enumerate(self.attns):
@@ -127,7 +127,7 @@ class AxialFormerLayer(nn.Module):
             query_embed = query_embed + attn(query_embed_, kv, kv)[0]
 
         query_embed = query_embed + self.ffn(self.norm3(query_embed))
-        return index_fov_back_to_voxels(x3d, query_embed, fov_mask.squeeze())
+        return index_fov_back_to_voxels(x3d, query_embed, fov_mask)
 
 
 class VoxFormerStage(nn.Module):

@@ -478,6 +478,9 @@ class MaskDINODecoder(nn.Module):
             valid_ratios=valid_ratios,
             tgt_mask=tgt_mask,
             bbox_embed=self.bbox_embed)
+        if return_queries:
+            return dict(queries=hs[-1], references=references[-2])
+
         for i, output in enumerate(hs):
             outputs_class, outputs_mask = self.forward_prediction_heads(
                 output.transpose(0, 1), mask_features, self.training
@@ -515,12 +518,9 @@ class MaskDINODecoder(nn.Module):
         }
         if self.two_stage:
             out['interm_outputs'] = interm_outputs
-        if return_queries:
-            out['queries'] = hs[-1]
         return out, mask_dict
 
     def forward_prediction_heads(self, output, mask_features, pred_mask=True):
-        # decoder_output = self.decoder_norm(output)  # TODO: again ???
         decoder_output = self.decoder.norm(output)
         decoder_output = decoder_output.transpose(0, 1)
         outputs_class = self.class_embed(decoder_output)
