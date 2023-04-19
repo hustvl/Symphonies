@@ -51,7 +51,7 @@ class MMDetWrapper(nn.Module):
             refs = self._batch_indexing(refs, keep)
         return dict(
             queries=queries,
-            feats=(feats[0], *multi_scale_feats[:1]),
+            feats=(feats[0], *multi_scale_feats[:2]),
             ref_2d=self.pred_box(self.bbox_embed_2d, queries, refs)[:2],
             ref_3d=self.pred_box(self.bbox_embed_3d, queries, refs)[:2])
 

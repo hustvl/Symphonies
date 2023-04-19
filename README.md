@@ -1,4 +1,4 @@
-# Symphonies 🎻
+# Symphonies (Scene-from-Insts) 🎻
 
 [![](https://img.shields.io/github/license/npurson/symphonies)](LICENSE)
 
@@ -9,7 +9,7 @@ Refer to:
 * https://github.com/open-mmlab/mmdetection/blob/3.x/configs/faster_rcnn/README.md
 -->
 
-***Symphonies (Scene-from-Insts)*** - Symphonize 3D Semantic Scene Completion with Instance Queries.
+**Symphonize 3D Semantic Scene Completion with Instance Queries**
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 

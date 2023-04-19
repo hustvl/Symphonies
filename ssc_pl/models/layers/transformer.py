@@ -79,12 +79,19 @@ class DeformableTransformerLayer(nn.Module):
             nn.Linear(embed_dims * mlp_ratio, embed_dims),
         )
 
-    def forward(self, query, value=None, query_pos=None, ref_pts=None, spatial_shapes=None):
+    def forward(self,
+                query,
+                value=None,
+                query_pos=None,
+                ref_pts=None,
+                spatial_shapes=None,
+                level_start_index=None):
         query = query + self.attn(
             self.norm1(query),
             value=value,
             query_pos=query_pos,
             reference_points=ref_pts,
-            spatial_shapes=spatial_shapes)
+            spatial_shapes=spatial_shapes,
+            level_start_index=level_start_index)
         query = query + self.ffn(self.norm2(query))
         return query
