@@ -12,6 +12,10 @@ def cumprod(xs):
 
 
 def flatten_fov_from_voxels(x3d, fov_mask):
+    assert x3d.shape[0] == 1
+    if fov_mask.dim() == 2:
+        assert fov_mask.shape[0] == 1
+        fov_mask = fov_mask.squeeze()
     return x3d.flatten(2)[..., fov_mask].transpose(1, 2)
 
 

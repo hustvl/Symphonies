@@ -18,6 +18,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 1. Install PyTorch and Torchvision referring to https://pytorch.org/get-started/locally/.
 2. Install MMDetection referring to https://mmdetection.readthedocs.io/en/latest/get_started.html#installation.
 3. Install the rest of the requirements with pip.
+
     ```bash
     pip install -r requirements.txt
     ```
@@ -27,7 +28,8 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 1. **Training**
 
     ```shell
-    python tools/train.py [--config-name config[.yaml]] [trainer.devices=4] [+data_root=$DATA_ROOT] [+preprocess_root=$PREPROCESS_ROOT]
+    python tools/train.py [--config-name config[.yaml]] [trainer.devices=4] \
+        [+data_root=$DATA_ROOT] [+label_root=$LABEL_ROOT] [+depth_root=$DEPTH_ROOT]
     ```
 
     * Override the default config file with `--config-name`.

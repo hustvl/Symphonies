@@ -132,7 +132,7 @@ class SemanticKITTI(Dataset):
 
         if self.depth_root is not None:
             depth_path = osp.join(self.depth_root, 'sequences', sequence, frame_id + '.npy')
-            data['depth'] = np.load(depth_path)
+            data['depth'] = np.load(depth_path)[:self.img_shape[1], :self.img_shape[0]]
 
         # Compute the masks, each indicate the voxels of a local frustum
         if self.split != 'test':
