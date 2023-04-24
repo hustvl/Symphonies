@@ -27,11 +27,11 @@ class Symphonies(PLModelInterface):
         self.class_weights = class_weights
         self.criterions = criterions
 
-        self.encoder = getattr(encoders, encoder.type)(**encoder.cfgs)
+        self.encoder = getattr(encoders, encoder.type)(embed_dims=embed_dims, **encoder.cfgs)
         self.decoder = SymphoniesDecoder(
             embed_dims,
             num_classes,
-            num_layers=4,
+            num_layers=2,
             scene_shape=scene_size,
             project_scale=volume_scale,
             image_shape=(370, 1220),

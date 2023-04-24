@@ -16,6 +16,8 @@ from mmengine.utils import deprecated_api_warning
 from mmcv.utils import IS_CUDA_AVAILABLE, IS_MLU_AVAILABLE
 from mmcv.ops.multi_scale_deform_attn import MultiScaleDeformableAttnFunction
 
+__all__ = ['MultiScaleDeformableAttention3D']
+
 
 def multi_scale_deformable_attn_pytorch(
         value: torch.Tensor, value_spatial_shapes: torch.Tensor,
@@ -79,7 +81,7 @@ def multi_scale_deformable_attn_pytorch(
 
 
 # @MODELS.register_module()
-class MultiScaleDeformableAttention(BaseModule):
+class MultiScaleDeformableAttention3D(BaseModule):
     """An attention module used in Deformable-Detr.
     `Deformable DETR: Deformable Transformers for End-to-End Object Detection.
     <https://arxiv.org/pdf/2010.04159.pdf>`_.

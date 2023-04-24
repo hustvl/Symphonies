@@ -14,6 +14,7 @@ class MMDetWrapper(nn.Module):
                  config_path,
                  custom_imports,
                  checkpoint_path=None,
+                 embed_dims=256,
                  filter_topk=False,
                  freeze=False):
         super().__init__()
@@ -37,6 +38,17 @@ class MMDetWrapper(nn.Module):
             for param in self.model.parameters():
                 param.requires_grad = False
 
+        num_levels = 3
+        if embed_dims != self.hidden_dims:
+            self.out_projs = nn.ModuleList([
+                nn.Sequential(
+                    nn.Conv2d(self.hidden_dims, embed_dims, 1),
+                    nn.BatchNorm2d(embed_dims),
+                    nn.ReLU(inplace=True),
+                    nn.Conv2d(embed_dims, embed_dims, 1),
+                ) for _ in range(num_levels)
+            ])
+
     def forward(self, x):
         # TODO: The following is only designed for the MaskDINO implementation.
         feats = self.model.extract_feat(x)
@@ -44,6 +56,9 @@ class MMDetWrapper(nn.Module):
             feats, masks=None)
         preds = self.model.panoptic_head.predictor(
             multi_scale_feats, mask_feat, masks=None, return_queries=True)
+        feats = (feats[0], *multi_scale_feats[:2])
+        if hasattr(self, 'out_projs'):
+            feats = [proj(feat) for proj, feat in zip(self.out_projs, feats)]
         queries, refs = preds['queries'], preds['references']
 
         if self.filter_topk:
@@ -51,7 +66,7 @@ class MMDetWrapper(nn.Module):
             refs = self._batch_indexing(refs, keep)
         return dict(
             queries=queries,
-            feats=(feats[0], *multi_scale_feats[:2]),
+            feats=feats,
             ref_2d=self.pred_box(self.bbox_embed_2d, queries, refs)[..., :2],
             ref_3d=self.pred_box(self.bbox_embed_3d, queries, refs)[..., :2])
 

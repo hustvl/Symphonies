@@ -5,7 +5,7 @@
 defaults:
   - datasets: semantic_kitti
   - models: symphonies
-  - schedules: adamw_lr1e-4_30e
+  - schedules: adamw_lr2e-4_30e
   - _self_
 
 hydra:

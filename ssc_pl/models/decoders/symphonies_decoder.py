@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
 
-from ..layers import TransformerLayer, DeformableTransformerLayer, nlc_to_nchw, nchw_to_nlc, Upsample
+from ..layers import (TransformerLayer, DeformableTransformerLayer, nlc_to_nchw, nchw_to_nlc,
+                      DeformableSqueezeAttention, Upsample)
 from ..projections.cvt import generate_grid
 from .getr_decoder import flatten_fov_from_voxels, index_fov_back_to_voxels
 
@@ -33,9 +34,17 @@ class SymphoniesLayer(nn.Module):
         self.query_self_attn = TransformerLayer(embed_dims, num_heads)
         self.scene_query_cross_attn = TransformerLayer(embed_dims, num_heads)
         self.scene_self_deform_attn = DeformableTransformerLayer(
-            embed_dims, num_heads, num_levels=1, num_points=num_points, num_dims=3)
+            embed_dims,
+            num_heads,
+            num_levels=1,
+            num_points=num_points * 2,
+            attn_layer=DeformableSqueezeAttention)
         self.query_scene_cross_deform_attn = DeformableTransformerLayer(
-            embed_dims, num_heads, num_levels=1, num_points=num_points, num_dims=3)
+            embed_dims,
+            num_heads,
+            num_levels=1,
+            num_points=num_points * 2,
+            attn_layer=DeformableSqueezeAttention)
         self.query_image_cross_defrom_attn = DeformableTransformerLayer(
             embed_dims, num_heads, num_levels, num_points, num_dims=2)
 
@@ -133,7 +142,8 @@ class SymphoniesDecoder(nn.Module):
         self.num_queries = reduce(lambda x, y: x * y, scene_shape)
         self.scene_embed = nn.Embedding(self.num_queries, embed_dims)
         self.voxel_size = voxel_size * project_scale
-        self.register_buffer('voxel_grid', generate_grid(scene_shape, (1, 1, 1), offset=0.5))
+        self.register_buffer('voxel_grid',
+                             generate_grid(scene_shape, scene_shape, offset=0.5, normalize=True))
 
         self.voxel_proposal = VoxelProposal(embed_dims, scene_shape, image_shape, self.voxel_size)
         self.image_shape = image_shape

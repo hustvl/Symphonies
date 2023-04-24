@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from ..layers import TransformerLayer, nchw_to_nlc
 
 
-def generate_grid(grid_shape, value, offset=0):
+def generate_grid(grid_shape, value, offset=0, normalize=False):
     """
     Args:
         grid_shape: The (scaled) shape of grid.
@@ -16,6 +16,8 @@ def generate_grid(grid_shape, value, offset=0):
     grid = []
     for i, (s, val) in enumerate(zip(grid_shape, value)):
         g = torch.linspace(offset, val - 1 + offset, s, dtype=torch.float)
+        if normalize:
+            g /= s
         shape_ = [1 for _ in grid_shape]
         shape_[i] = s
         g = g.reshape(1, *shape_).expand(1, *grid_shape)
