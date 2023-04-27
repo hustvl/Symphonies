@@ -31,11 +31,12 @@ class Symphonies(PLModelInterface):
         self.decoder = SymphoniesDecoder(
             embed_dims,
             num_classes,
-            num_layers=2,
+            num_layers=3,
             scene_shape=scene_size,
             project_scale=volume_scale,
             image_shape=(370, 1220),
-            voxel_size=0.2)
+            voxel_size=0.2,
+            downsample_z=2)
         self.insts_ffn = nn.Sequential(
             nn.Linear(self.encoder.hidden_dims, embed_dims * 4), nn.GELU(),
             nn.Linear(embed_dims * 4, embed_dims))

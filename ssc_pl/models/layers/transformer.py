@@ -1,7 +1,7 @@
 import torch.nn as nn
 from functools import reduce
 
-from .deform_attn_3d import MultiScaleDeformableAttention3D
+from mmcv.ops import MultiScaleDeformableAttention
 
 
 def nlc_to_nchw(x, shape):
@@ -57,7 +57,7 @@ class DeformableTransformerLayer(nn.Module):
                  num_levels=3,
                  num_points=4,
                  mlp_ratio=4,
-                 attn_layer=MultiScaleDeformableAttention3D,
+                 attn_layer=MultiScaleDeformableAttention,
                  norm_layer=nn.LayerNorm,
                  **kwargs):
         super().__init__()

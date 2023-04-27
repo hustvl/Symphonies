@@ -30,8 +30,8 @@ class ConsoleExperimentWriter(ExperimentWriter):
         def metrics2str(metrics: dict) -> str:
             return ', '.join([
                 f'{x}: {{{metrics2str(y)}}}' if isinstance(y, dict) else
-                f'{x}: {y:.5f}' if isinstance(y, float) else f'{x}: {y}'
-                for x, y in metrics.items()
+                (f'{x}: {y:.4f}' if y >= 1e-4 else f'{x}: {y:.5f}')
+                if isinstance(y, float) else f'{x}: {y}' for x, y in metrics.items()
             ])
 
         log_str = metrics2str(metrics)
