@@ -51,20 +51,33 @@ class SymphoniesLayer(nn.Module):
         self.query_image_cross_defrom_attn = DeformableTransformerLayer(
             embed_dims, num_heads, num_levels, num_points)
 
-    def forward(self, scene_embed, inst_queries, feats, ref_2d, ref_3d, ref_vox, fov_mask):
-        inst_queries = self.query_self_attn(inst_queries, inst_queries, inst_queries)
+    def forward(self,
+                scene_embed,
+                inst_queries,
+                feats,
+                scene_pos=None,
+                inst_pos=None,
+                ref_2d=None,
+                ref_3d=None,
+                ref_vox=None,
+                fov_mask=None):
+        inst_queries = self.query_self_attn(inst_queries, query_pos=inst_pos)
 
         scene_embed_fov = flatten_fov_from_voxels(scene_embed, fov_mask)
+        scene_pos_fov = flatten_fov_from_voxels(scene_pos,
+                                                fov_mask) if scene_pos is not None else None
         scene_embed_flatten, scene_shape = flatten_multi_scale_feats([scene_embed])
         scene_level_index = get_level_start_index(scene_shape)
 
         feats_flatten, feat_shapes = flatten_multi_scale_feats(feats)
         feats_level_index = get_level_start_index(feat_shapes)
 
-        scene_embed_fov = self.scene_query_cross_attn(scene_embed_fov, inst_queries, inst_queries)
+        scene_embed_fov = self.scene_query_cross_attn(scene_embed_fov, inst_queries, inst_queries,
+                                                      scene_pos_fov, inst_pos)
         scene_embed_fov = self.scene_self_deform_attn(
             scene_embed_fov,
             scene_embed_flatten,
+            query_pos=scene_pos_fov,
             ref_pts=ref_vox[:, fov_mask.squeeze()],  # TODO: assert bs == 1
             spatial_shapes=scene_shape,
             level_start_index=scene_level_index)
@@ -75,12 +88,14 @@ class SymphoniesLayer(nn.Module):
         inst_queries = self.query_scene_cross_deform_attn(
             inst_queries,
             scene_embed_flatten,
+            query_pos=inst_pos,
             ref_pts=ref_3d,
             spatial_shapes=scene_shape,
             level_start_index=scene_level_index)
         inst_queries = self.query_image_cross_defrom_attn(
             inst_queries,
             feats_flatten,
+            query_pos=inst_pos,
             ref_pts=ref_2d,
             spatial_shapes=feat_shapes,
             level_start_index=feats_level_index)
@@ -110,7 +125,15 @@ class VoxelProposal(nn.Module):
         image_grid = torch.flip(image_grid, dims=[0]).unsqueeze(0)
         self.register_buffer('image_grid', image_grid)
 
-    def forward(self, scene_embed, feats, depth, K, E, voxel_origin, ref_pix):
+    def forward(self,
+                scene_embed,
+                feats,
+                scene_pos=None,
+                depth=None,
+                K=None,
+                E=None,
+                voxel_origin=None,
+                ref_pix=None):
         p_v = pix2vox(
             self.image_grid,
             depth.unsqueeze(1),
@@ -134,6 +157,7 @@ class VoxelProposal(nn.Module):
         pts_embed = self.attn(
             scene_embed[:, pts_mask],
             feat_flatten,
+            query_pos=scene_pos[:, pts_mask] if scene_pos is not None else None,
             ref_pts=ref_pix[:, pts_mask].unsqueeze(2).expand(-1, -1, len(feats), -1),
             spatial_shapes=shapes,
             level_start_index=get_level_start_index(shapes))
@@ -231,4 +255,5 @@ class SymphoniesDecoder(nn.Module):
             self.voxel_size,
             offset=0,
             downsample_z=self.downsample_z)
-        return ref_pts.to(depth) / torch.tensor(self.scene_shape).to(depth)
+        ref_pts = ref_pts.to(depth) / torch.tensor(self.scene_shape).to(depth)
+        return ref_pts.clamp(0, 1)

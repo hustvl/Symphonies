@@ -43,10 +43,18 @@ class TransformerLayer(nn.Module):
             nn.Linear(embed_dims * mlp_ratio, embed_dims),
         )
 
-    def forward(self, q, k, v):
-        q = q + self.attn(self.norm1(q), k, v)[0]
-        q = q + self.ffn(self.norm2(q))
-        return q
+    def forward(self, query, key=None, value=None, query_pos=None, key_pos=None):
+        if key is None and value is None:
+            key = value = query
+            key_pos = query_pos
+        if key_pos is not None:
+            key = key + key_pos
+        if query_pos is not None:
+            query = query + self.attn(self.norm1(query) + query_pos, key, value)[0]
+        else:
+            query = query + self.attn(self.norm1(query), key, value)[0]
+        query = query + self.ffn(self.norm2(query))
+        return query
 
 
 class DeformableTransformerLayer(nn.Module):
