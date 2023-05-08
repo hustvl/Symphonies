@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import copy
 from functools import reduce
+from torch.cuda.amp import autocast
 
 from ..layers import (TransformerLayer, DeformableTransformerLayer, nlc_to_nchw, nchw_to_nlc,
                       MultiScaleDeformableAttention3D, DeformableSqueezeAttention, Upsample)
@@ -32,7 +33,7 @@ def pix2vox(pix_coords, depth, K, E, voxel_origin, voxel_size, offset=0.5, downs
 
 class SymphoniesLayer(nn.Module):
 
-    def __init__(self, embed_dims, num_heads=8, num_levels=3, num_points=4):
+    def __init__(self, embed_dims, num_heads=8, num_levels=3, num_points=4, query_update=True):
         super().__init__()
         self.query_self_attn = TransformerLayer(embed_dims, num_heads)
         self.scene_query_cross_attn = TransformerLayer(embed_dims, num_heads)
@@ -42,14 +43,17 @@ class SymphoniesLayer(nn.Module):
             num_levels=1,
             num_points=num_points * 2,
             attn_layer=DeformableSqueezeAttention)
-        self.query_scene_cross_deform_attn = DeformableTransformerLayer(
-            embed_dims,
-            num_heads,
-            num_levels=1,
-            num_points=num_points * 2,
-            attn_layer=DeformableSqueezeAttention)
-        self.query_image_cross_defrom_attn = DeformableTransformerLayer(
-            embed_dims, num_heads, num_levels, num_points)
+
+        self.query_update = query_update
+        if query_update:
+            self.query_scene_cross_deform_attn = DeformableTransformerLayer(
+                embed_dims,
+                num_heads,
+                num_levels=1,
+                num_points=num_points * 2,
+                attn_layer=DeformableSqueezeAttention)
+            self.query_image_cross_defrom_attn = DeformableTransformerLayer(
+                embed_dims, num_heads, num_levels, num_points)
 
     def forward(self,
                 scene_embed,
@@ -85,6 +89,9 @@ class SymphoniesLayer(nn.Module):
         scene_embed = index_fov_back_to_voxels(scene_embed, scene_embed_fov, fov_mask)
         scene_embed_flatten, scene_shape = flatten_multi_scale_feats([scene_embed])
 
+        if not self.query_update:
+            return scene_embed, inst_queries
+
         inst_queries = self.query_scene_cross_deform_attn(
             inst_queries,
             scene_embed_flatten,
@@ -119,8 +126,6 @@ class VoxelProposal(nn.Module):
         self.voxel_size = voxel_size
         self.downsample_z = downsample_z
 
-        # TODO: the depth pred shape is not aligned with the original image,
-        # find the reason and fix by interpolate/crop in the Dataset.getitem()
         image_grid = generate_grid(image_shape, image_shape)  # 2(wh), h, w
         image_grid = torch.flip(image_grid, dims=[0]).unsqueeze(0)
         self.register_buffer('image_grid', image_grid)
@@ -188,7 +193,10 @@ class SymphoniesDecoder(nn.Module):
         self.voxel_size = voxel_size * project_scale
         self.downsample_z = downsample_z
 
-        self.layers = nn.ModuleList([SymphoniesLayer(embed_dims) for _ in range(num_layers)])
+        self.layers = nn.ModuleList([
+            SymphoniesLayer(embed_dims, query_update=True if i != num_layers - 1 else False)
+            for i in range(num_layers)
+        ])
         self.scene_embed = nn.Embedding(self.num_queries, embed_dims)
         self.voxel_proposal = VoxelProposal(
             embed_dims, scene_shape, image_shape, self.voxel_size, downsample_z=downsample_z)
@@ -212,7 +220,9 @@ class SymphoniesDecoder(nn.Module):
             Upsample(embed_dims, embed_dims) if project_scale == 2 else nn.Identity(),
             nn.Conv3d(embed_dims, num_classes, kernel_size=1))
 
-    def forward(self, pred_insts, feats, depth, K, E, voxel_origin, projected_pix, fov_mask):
+    @autocast(dtype=torch.float32)
+    def forward(self, pred_insts, feats, pred_masks, depth, K, E, voxel_origin, projected_pix,
+                fov_mask):
         inst_queries = pred_insts['queries']  # bs, n, c
         bs = inst_queries.shape[0]
 
@@ -223,24 +233,26 @@ class SymphoniesDecoder(nn.Module):
                 fov_mask, self.ori_scene_shape, self.scene_shape, mode='trilinear')
 
         ref_2d = pred_insts['ref_2d'].unsqueeze(2).expand(-1, -1, len(feats), -1)
-        ref_3d = self.generate_vol_ref_pts(pred_insts['ref_3d'], depth, K, E,
+        ref_3d = self.generate_vol_ref_pts(pred_insts['ref_3d'], pred_masks, depth, K, E,
                                            voxel_origin).unsqueeze(2)
         ref_pix = (torch.flip(projected_pix, dims=[-1]) + 0.5) / torch.tensor(
             self.image_shape).to(projected_pix)
         ref_vox = nchw_to_nlc(self.voxel_grid.unsqueeze(0)).unsqueeze(2)
 
         scene_embed = self.scene_embed.weight.repeat(bs, 1, 1)
-        scene_embed = self.voxel_proposal(scene_embed, feats, depth, K, E, voxel_origin, ref_pix)
+        scene_pos = None
+        scene_embed = self.voxel_proposal(scene_embed, feats, scene_pos, depth, K, E, voxel_origin,
+                                          ref_pix)
 
         outs = []
         for i, layer in enumerate(self.layers):
-            scene_embed, inst_queries = layer(scene_embed, inst_queries, feats, ref_2d, ref_3d,
-                                              ref_vox, fov_mask)
+            scene_embed, inst_queries = layer(scene_embed, inst_queries, feats, scene_pos, None,
+                                              ref_2d, ref_3d, ref_vox, fov_mask)
             if self.training or i == len(self.layers) - 1:
                 outs.append(self.cls_head(scene_embed))
         return outs
 
-    def generate_vol_ref_pts(self, ref_pts, depth, K, E, voxel_origin):
+    def generate_vol_ref_pts(self, ref_pts, pred_masks, depth, K, E, voxel_origin):
         ref_pts *= torch.flip(torch.tensor(self.image_shape), dims=[0]).to(ref_pts)
         ref_pts = ref_pts.transpose(1, 2)  # bs, 2, n
         assert ref_pts.shape[0] == 1

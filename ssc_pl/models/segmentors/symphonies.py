@@ -45,13 +45,15 @@ class Symphonies(PLModelInterface):
         pred_insts = self.encoder(inputs['img'])
         pred_insts['queries'] = self.insts_ffn(pred_insts['queries'])
         feats = pred_insts.pop('feats')
+        pred_masks = pred_insts.pop('pred_masks', None)
 
         depth, K, E, voxel_origin, projected_pix, fov_mask = list(
             map(lambda k: inputs[k],
                 ('depth', 'cam_K', 'cam_pose', 'voxel_origin', f'projected_pix_{self.volume_scale}',
                  f'fov_mask_{self.volume_scale}')))
 
-        outs = self.decoder(pred_insts, feats, depth, K, E, voxel_origin, projected_pix, fov_mask)
+        outs = self.decoder(pred_insts, feats, pred_masks, depth, K, E, voxel_origin, projected_pix,
+                            fov_mask)
         return {'ssc_logits': outs[-1], 'aux_outputs': outs}
 
     def losses(self, preds, target):

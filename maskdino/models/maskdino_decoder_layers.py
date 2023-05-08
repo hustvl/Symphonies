@@ -479,7 +479,11 @@ class MaskDINODecoder(nn.Module):
             tgt_mask=tgt_mask,
             bbox_embed=self.bbox_embed)
         if return_queries:
-            return dict(queries=hs[-1], references=references[-2])
+            queries = hs[-1]
+            decoder_output = self.decoder.norm(queries)
+            mask_embed = self.mask_embed(decoder_output)
+            pred_masks = torch.einsum('bqc, bchw -> bqhw', mask_embed, mask_features)
+            return dict(queries=queries, references=references[-2], pred_masks=pred_masks)
 
         for i, output in enumerate(hs):
             outputs_class, outputs_mask = self.forward_prediction_heads(

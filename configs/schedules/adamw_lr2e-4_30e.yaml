@@ -5,6 +5,7 @@ solver:
     type: AdamW
     cfgs:
       lr: 2.0e-4
+      eps: 1.0e-3  # for fp16
       weight_decay: 1.0e-4
     # paramwise_cfg:
     #   - name: backbone
