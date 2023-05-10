@@ -1,5 +1,6 @@
 import os.path as osp
 import glob
+import random
 import numpy as np
 import torch
 
@@ -43,6 +44,7 @@ class SemanticKITTI(Dataset):
         project_scale=2,
         frustum_size=4,
         context_prior=False,
+        flip=True,
     ):
         super().__init__()
         self.data_root = data_root
@@ -55,6 +57,7 @@ class SemanticKITTI(Dataset):
         self.project_scale = project_scale
         self.output_scale = int(self.project_scale / 2)
         self.context_prior = context_prior
+        self.flip = flip
         self.num_classes = 20
 
         self.voxel_origin = np.array((0, -25.6, -2))
@@ -121,9 +124,13 @@ class SemanticKITTI(Dataset):
             data[f'pix_z_{scale_3d}'] = pix_z
             data[f'fov_mask_{scale_3d}'] = fov_mask
 
+        flip = random.random() > 0.5 if self.flip and self.split == 'train' else False
         target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
         target = np.load(target_1_path)
+        if flip:
+            target = np.flip(target, axis=1).copy()
         label['target'] = target
+
         if self.context_prior:
             target_8_path = osp.join(self.label_root, sequence, frame_id + '_1_8.npy')
             target_1_8 = np.load(target_8_path)
@@ -132,7 +139,10 @@ class SemanticKITTI(Dataset):
 
         if self.depth_root is not None:
             depth_path = osp.join(self.depth_root, 'sequences', sequence, frame_id + '.npy')
-            data['depth'] = np.load(depth_path)[:self.img_shape[1], :self.img_shape[0]]
+            depth = np.load(depth_path)[:self.img_shape[1], :self.img_shape[0]]
+            if flip:
+                depth = np.flip(depth, axis=1).copy()
+            data['depth'] = depth
 
         # Compute the masks, each indicate the voxels of a local frustum
         if self.split != 'test':
@@ -154,6 +164,8 @@ class SemanticKITTI(Dataset):
                             frame_id + '.png')
         img = Image.open(img_path).convert('RGB')
         img = np.asarray(img, dtype=np.float32) / 255.0
+        if flip:
+            img = np.flip(img, axis=1).copy()
         img = img[:self.img_shape[1], :self.img_shape[0]]  # crop image
         data['img'] = self.transforms(img)  # (3, H, W)
 

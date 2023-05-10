@@ -31,8 +31,8 @@ class MMDetWrapper(nn.Module):
         self.filter_topk = filter_topk
         if filter_topk:
             self.class_embed = self.model.panoptic_head.predictor.class_embed
-        self.bbox_embed_2d = self.model.panoptic_head.predictor.bbox_embed[-1]
-        self.bbox_embed_3d = deepcopy(self.bbox_embed_2d)
+        self.bbox_embed = self.model.panoptic_head.predictor.bbox_embed[-1]
+        self.pts_embed = deepcopy(self.bbox_embed)
 
         if freeze:
             for param in self.model.parameters():
@@ -50,7 +50,7 @@ class MMDetWrapper(nn.Module):
             ])
 
     def forward(self, x):
-        # TODO: The following is only designed for the MaskDINO implementation.
+        # TODO: The following is only devised for the MaskDINO implementation.
         feats = self.model.extract_feat(x)
         mask_feat, _, multi_scale_feats = self.model.panoptic_head.pixel_decoder.forward_features(
             feats, masks=None)
@@ -59,16 +59,21 @@ class MMDetWrapper(nn.Module):
         feats = (feats[0], *multi_scale_feats[:2])
         if hasattr(self, 'out_projs'):
             feats = [proj(feat) for proj, feat in zip(self.out_projs, feats)]
-        queries, refs = preds['queries'], preds['references']
+        queries, refs, pred_masks = list(
+            map(lambda k: preds[k], ('queries', 'references', 'pred_masks')))
+        pred_masks = pred_masks >= 0
 
         if self.filter_topk:
             queries, keep = self.filter_topk_queries(queries)
             refs = self._batch_indexing(refs, keep)
+            pred_masks = self._batch_indexing(pred_masks, keep)
+
         return dict(
             queries=queries,
             feats=feats,
-            ref_2d=self.pred_box(self.bbox_embed_2d, queries, refs)[..., :2],
-            ref_3d=self.pred_box(self.bbox_embed_3d, queries, refs)[..., :2])
+            pred_masks=pred_masks,
+            ref_pts=self.pred_box(self.pts_embed, queries, refs)[..., :2],
+            pred_boxes=self.pred_box(self.bbox_embed, queries, refs))
 
     def filter_topk_queries(self, queries):
         scores = self.class_embed(queries)
