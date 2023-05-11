@@ -208,6 +208,7 @@ class SymphoniesDecoder(nn.Module):
     def forward(self, pred_insts, feats, pred_masks, depth, K, E, voxel_origin, projected_pix,
                 fov_mask):
         inst_queries = pred_insts['queries']  # bs, n, c
+        inst_pos = pred_insts.get('query_pos', None)
         bs = inst_queries.shape[0]
 
         if self.downsample_z != 1:
@@ -224,7 +225,7 @@ class SymphoniesDecoder(nn.Module):
             self.voxel_size,
             downsample_z=self.downsample_z)
 
-        ref_2d = pred_insts['ref_pts'].unsqueeze(2).expand(-1, -1, len(feats), -1)
+        ref_2d = pred_insts['pred_pts'].unsqueeze(2).expand(-1, -1, len(feats), -1)
         ref_3d = self.generate_vol_ref_pts(pred_insts['pred_boxes'], pred_masks,
                                            pts_vol).unsqueeze(2)
         ref_pix = (torch.flip(projected_pix, dims=[-1]) + 0.5) / torch.tensor(
@@ -238,7 +239,7 @@ class SymphoniesDecoder(nn.Module):
 
         outs = []
         for i, layer in enumerate(self.layers):
-            scene_embed, inst_queries = layer(scene_embed, inst_queries, feats, scene_pos, None,
+            scene_embed, inst_queries = layer(scene_embed, inst_queries, feats, scene_pos, inst_pos,
                                               ref_2d, ref_3d, ref_vox, fov_mask)
             if self.training or i == len(self.layers) - 1:
                 outs.append(self.cls_head(scene_embed))

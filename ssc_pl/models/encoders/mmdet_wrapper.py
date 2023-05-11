@@ -65,14 +65,14 @@ class MMDetWrapper(nn.Module):
 
         if self.filter_topk:
             queries, keep = self.filter_topk_queries(queries)
-            refs = self._batch_indexing(refs, keep)
-            pred_masks = self._batch_indexing(pred_masks, keep)
+            refs, pred_masks = list(
+                map(lambda x: self._batch_indexing(x, keep), (refs, pred_masks)))
 
         return dict(
             queries=queries,
             feats=feats,
             pred_masks=pred_masks,
-            ref_pts=self.pred_box(self.pts_embed, queries, refs)[..., :2],
+            pred_pts=self.pred_box(self.pts_embed, queries, refs)[..., :2],
             pred_boxes=self.pred_box(self.bbox_embed, queries, refs))
 
     def filter_topk_queries(self, queries):
