@@ -3,7 +3,7 @@
 data:
   datasets:
     type: SemanticKITTI
-    splits: [train, val]
+    splits: [train, val, test]
     cfgs:
       data_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin
       label_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin/processed/labels

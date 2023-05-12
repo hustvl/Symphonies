@@ -19,7 +19,7 @@ def main(cfg: DictConfig):
     dls, meta_info = build_data_loaders(cfg.data)
     model = getattr(models, cfg.model.type)(**cfg.model.cfgs, **cfg.solver, **meta_info)
     trainer = pl.Trainer(**cfg.trainer, **callbacks)
-    trainer.fit(model, *dls)  # resume training by `ckpt_path=`
+    trainer.fit(model, *dls[:2])  # resume training by `ckpt_path=`
 
 
 if __name__ == '__main__':

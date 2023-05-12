@@ -125,11 +125,12 @@ class SemanticKITTI(Dataset):
             data[f'fov_mask_{scale_3d}'] = fov_mask
 
         flip = random.random() > 0.5 if self.flip and self.split == 'train' else False
-        target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
-        target = np.load(target_1_path)
-        if flip:
-            target = np.flip(target, axis=1).copy()
-        label['target'] = target
+        if self.split != 'test':
+            target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
+            target = np.load(target_1_path)
+            if flip:
+                target = np.flip(target, axis=1).copy()
+            label['target'] = target
 
         if self.context_prior:
             target_8_path = osp.join(self.label_root, sequence, frame_id + '_1_8.npy')
@@ -154,11 +155,8 @@ class SemanticKITTI(Dataset):
                 n_classes=20,
                 size=self.frustum_size,
             )
-        else:
-            frustums_masks = None
-            frustums_class_dists = None
-        label['frustums_masks'] = frustums_masks
-        label['frustums_class_dists'] = frustums_class_dists
+            label['frustums_masks'] = frustums_masks
+            label['frustums_class_dists'] = frustums_class_dists
 
         img_path = osp.join(self.data_root, 'dataset', 'sequences', sequence, 'image_2',
                             frame_id + '.png')
