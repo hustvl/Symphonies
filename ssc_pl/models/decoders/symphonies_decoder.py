@@ -112,24 +112,17 @@ class SymphoniesLayer(nn.Module):
 
 class VoxelProposalLayer(nn.Module):
 
-    def __init__(self,
-                 embed_dims,
-                 scene_shape,
-                 voxel_size,
-                 num_heads=8,
-                 num_levels=3,
-                 num_points=4):
+    def __init__(self, embed_dims, scene_shape, num_heads=8, num_levels=3, num_points=4):
         super().__init__()
         self.attn = DeformableTransformerLayer(embed_dims, num_heads, num_levels, num_points)
         self.scene_shape = scene_shape
-        self.voxel_size = voxel_size
 
-    def forward(self, scene_embed, feats, scene_pos=None, pts_vol=None, ref_pix=None):
-        keep = ((pts_vol[..., 0] >= 0) & (pts_vol[..., 0] < self.scene_shape[0]) &
-                (pts_vol[..., 1] >= 0) & (pts_vol[..., 1] < self.scene_shape[1]) &
-                (pts_vol[..., 2] >= 0) & (pts_vol[..., 2] < self.scene_shape[2]))
-        assert pts_vol.shape[0] == 1
-        geom = pts_vol.squeeze()[keep.squeeze()]
+    def forward(self, scene_embed, feats, scene_pos=None, vol_pts=None, ref_pix=None):
+        keep = ((vol_pts[..., 0] >= 0) & (vol_pts[..., 0] < self.scene_shape[0]) &
+                (vol_pts[..., 1] >= 0) & (vol_pts[..., 1] < self.scene_shape[1]) &
+                (vol_pts[..., 2] >= 0) & (vol_pts[..., 2] < self.scene_shape[2]))
+        assert vol_pts.shape[0] == 1
+        geom = vol_pts.squeeze()[keep.squeeze()]
 
         pts_mask = torch.zeros(self.scene_shape, device=scene_embed.device, dtype=torch.bool)
         pts_mask[geom[:, 0], geom[:, 1], geom[:, 2]] = True
@@ -170,7 +163,7 @@ class SymphoniesDecoder(nn.Module):
         self.voxel_size = voxel_size * project_scale
         self.downsample_z = downsample_z
 
-        self.voxel_proposal = VoxelProposalLayer(embed_dims, scene_shape, self.voxel_size)
+        self.voxel_proposal = VoxelProposalLayer(embed_dims, scene_shape)
         self.layers = nn.ModuleList([
             SymphoniesLayer(embed_dims, query_update=True if i != num_layers - 1 else False)
             for i in range(num_layers)
@@ -216,7 +209,7 @@ class SymphoniesDecoder(nn.Module):
                 projected_pix, self.ori_scene_shape, self.scene_shape, mode='trilinear')
             fov_mask = interpolate_flatten(
                 fov_mask, self.ori_scene_shape, self.scene_shape, mode='trilinear')
-        pts_vol = pix2vox(
+        vol_pts = pix2vox(
             self.image_grid,
             depth.unsqueeze(1),
             K,
@@ -226,15 +219,17 @@ class SymphoniesDecoder(nn.Module):
             downsample_z=self.downsample_z)
 
         ref_2d = pred_insts['pred_pts'].unsqueeze(2).expand(-1, -1, len(feats), -1)
-        ref_3d = self.generate_vol_ref_pts(pred_insts['pred_boxes'], pred_masks,
-                                           pts_vol).unsqueeze(2)
+        ref_3d = self.generate_vol_ref_pts_from_masks(
+            pred_insts['pred_boxes'], pred_masks,
+            vol_pts).unsqueeze(2) if pred_masks else self.generate_vol_ref_pts_from_pts(
+                pred_insts['pred_pts'], vol_pts).unsqueeze(2)
         ref_pix = (torch.flip(projected_pix, dims=[-1]) + 0.5) / torch.tensor(
             self.image_shape).to(projected_pix)
         ref_vox = nchw_to_nlc(self.voxel_grid.unsqueeze(0)).unsqueeze(2)
 
         scene_embed = self.scene_embed.weight.repeat(bs, 1, 1)
         scene_pos = self.scene_pos().repeat(bs, 1, 1)
-        scene_embed = self.voxel_proposal(scene_embed, feats, scene_pos, pts_vol, ref_pix)
+        scene_embed = self.voxel_proposal(scene_embed, feats, scene_pos, vol_pts, ref_pix)
         scene_pos = nlc_to_nchw(scene_pos, self.scene_shape)
 
         outs = []
@@ -245,7 +240,7 @@ class SymphoniesDecoder(nn.Module):
                 outs.append(self.cls_head(scene_embed))
         return outs
 
-    def generate_vol_ref_pts(self, pred_boxes, pred_masks, pts_vol):
+    def generate_vol_ref_pts_from_masks(self, pred_boxes, pred_masks, vol_pts):
         pred_boxes *= torch.tensor((self.image_shape + self.image_shape)[::-1]).to(pred_boxes)
         pred_pts = pred_boxes[..., :2].int()
         cx, cy, w, h = pred_boxes.split((1, 1, 1, 1), dim=-1)
@@ -266,8 +261,17 @@ class SymphoniesDecoder(nn.Module):
             if pred_masks[b, i].sum().item() != 0:
                 continue
             pred_masks[b, i, pred_pts[b, i, 1], pred_pts[b, i, 0]] = True
-        pred_masks = pred_masks.flatten(2).unsqueeze(-1).to(pts_vol)  # bs, n, hw, 1
-        pts_vol = pts_vol.unsqueeze(1) * pred_masks  # bs, n, hw, 3
-        pts_vol = pts_vol.sum(dim=2) / pred_masks.sum(dim=2) / torch.tensor(
-            self.scene_shape).to(pts_vol)
-        return pts_vol.clamp(0, 1)
+        pred_masks = pred_masks.flatten(2).unsqueeze(-1).to(vol_pts)  # bs, n, hw, 1
+        vol_pts = vol_pts.unsqueeze(1) * pred_masks  # bs, n, hw, 3
+        vol_pts = vol_pts.sum(dim=2) / pred_masks.sum(dim=2) / torch.tensor(
+            self.scene_shape).to(vol_pts)
+        return vol_pts.clamp(0, 1)
+
+    def generate_vol_ref_pts_from_pts(self, pred_pts, vol_pts):
+        pred_pts *= torch.tensor(self.image_shape[::-1]).to(pred_pts)
+        pred_pts = pred_pts.long()
+        pred_pts = pred_pts[..., 1] * self.image_shape[1] + pred_pts[..., 0]
+        assert pred_pts.size(0) == 1
+        ref_pts = vol_pts[:, pred_pts.squeeze()]
+        ref_pts = ref_pts / torch.tensor(self.scene_shape).to(pred_pts)
+        return ref_pts.clamp(0, 1)

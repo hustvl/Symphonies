@@ -59,7 +59,7 @@ def main(cfg: DictConfig):
     model.eval()
 
     assert cfg.data.datasets.type == 'SemanticKITTI'
-    label_map = np.array([KITTI_LABEL_MAP[i] for i in range(len(KITTI_LABEL_MAP))], dtype=np.uint16)
+    label_map = np.array([KITTI_LABEL_MAP[i] for i in range(len(KITTI_LABEL_MAP))], dtype=np.int32)
 
     with torch.no_grad():
         for batch_inputs, targets in tqdm(data_loader):
@@ -69,17 +69,16 @@ def main(cfg: DictConfig):
 
             outputs = model(batch_inputs)
             preds = torch.softmax(outputs['ssc_logits'], dim=1).detach().cpu().numpy()
-            preds = np.argmax(preds, axis=1).astype(np.uint16)
+            preds = np.argmax(preds, axis=1)
 
             for i in range(preds.shape[0]):
-                pred = label_map[preds[i].reshape(-1)]
+                pred = label_map[preds[i].reshape(-1)].astype(np.uint16)
                 save_dir = osp.join(output_dir,
                                     f"test/sequences/{batch_inputs['sequence'][i]}/predictions")
                 file_path = osp.join(save_dir, f"{batch_inputs['frame_id'][i]}.label")
                 os.makedirs(save_dir, exist_ok=True)
-                with open(file_path, 'wb') as f:
-                    pred.tofile(f)
-                    print('saved to', file_path)
+                pred.tofile(file_path)
+                print('saved to', file_path)
 
 
 if __name__ == '__main__':
