@@ -11,7 +11,6 @@ model:
         config_path: maskdino/configs/maskdino_r50_8xb2-panoptic-export.py
         custom_imports: maskdino
         checkpoint_path: ../../backups/maskdino_r50_50e_300q_panoptic_pq53.0.pth
-        filter_topk: 100
     criterions: [ce_ssc, sem_scal, geo_scal, frustum]
 
 solver:

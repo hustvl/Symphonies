@@ -37,15 +37,11 @@ class Symphonies(PLModelInterface):
             image_shape=(370, 1220),
             voxel_size=0.2,
             downsample_z=2)
-        self.insts_ffn = nn.Sequential(
-            nn.Linear(self.encoder.hidden_dims, embed_dims * 4), nn.GELU(),
-            nn.Linear(embed_dims * 4, embed_dims))
 
     def forward(self, inputs):
         pred_insts = self.encoder(inputs['img'])
-        pred_insts['queries'] = self.insts_ffn(pred_insts['queries'])
-        feats = pred_insts.pop('feats')
         pred_masks = pred_insts.pop('pred_masks', None)
+        feats = pred_insts.pop('feats')
 
         depth, K, E, voxel_origin, projected_pix, fov_mask = list(
             map(lambda k: inputs[k],
