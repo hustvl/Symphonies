@@ -9,7 +9,7 @@ Refer to:
 * https://github.com/open-mmlab/mmdetection/blob/3.x/configs/faster_rcnn/README.md
 -->
 
-### **[Symphonize 3D Semantic Scene Completion with Instance Queries](TODO)**, NeurIPS 2023 Submission
+### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](TODO)**, NeurIPS 2023 Submission
 
 [Haoyi Jiang](https://github.com/npurson)<sup>1</sup>,
 [Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1</sup>,
@@ -21,7 +21,7 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
-***TL;DR:*** We delve into a novel query-based paradigm for SSC that not only aims to enhance performance, but also ensures compatibility with large vision models as encoders and accommodating the requirements of modern query-based multi-task autonomous driving systems. Our approach achieves 12 mIoU & 37.7 IoU on the SemanticKITTI benchmark.
+***TL;DR:*** We delve into a novel query-based paradigm for SSC that facilitates scene reconstruction by incorporating instance queries, contributing to enhanced instance-level semantics and global context. Our approach achieves 12.15 mIoU & 37.96 IoU on the SemanticKITTI benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 

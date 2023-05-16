@@ -31,11 +31,10 @@ def build_from_configs(cfg: DictConfig):
             pl.callbacks.ModelCheckpoint(
                 dirpath=os.path.join(output_dir, cfg.save_dir)
                 if cfg.get('save_dir') else output_dir,
-                filename='{epoch}-{val_mIoU:.4f}',
+                filename='e{epoch}_miou{val_mIoU:.4f}',
                 monitor='val_mIoU',
-                save_last=True,
                 mode='max',
-            ),
+                auto_insert_metric_name=False),
             # pl.callbacks.ModelSummary(max_depth=-1)
         ]
     }
