@@ -21,7 +21,9 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
-***TL;DR:*** We delve into a novel query-based paradigm for SSC that facilitates scene reconstruction by incorporating instance queries, contributing to enhanced instance-level semantics and global context. Our approach achieves 12.15 mIoU & 37.96 IoU on the SemanticKITTI benchmark.
+![arch](assets/arch.png)
+
+**TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves ***12.29 mIoU & 39.16 IoU*** on the SemanticKITTI *test* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 
