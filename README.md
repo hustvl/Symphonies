@@ -1,13 +1,6 @@
 # Symphonies (Scene-from-Insts) 🎻
 
-[![](https://img.shields.io/github/license/npurson/symphonies)](LICENSE)
-
-<!--
-Refer to:
-
-* https://github.com/open-mmlab/mmdetection/blob/3.x/projects/example_project/README.md
-* https://github.com/open-mmlab/mmdetection/blob/3.x/configs/faster_rcnn/README.md
--->
+[![](https://img.shields.io/github/license/hustvl/Symphonies)](LICENSE)
 
 ### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](TODO)**, NeurIPS 2023 Submission
 
@@ -57,6 +50,18 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     ```shell
     python tools/generate_outputs.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
     ```
+
+## Results
+
+|                    Method                    |  IoU  | mIoU  |         Download         |
+| :------------------------------------------: | :---: | :---: | :----------------------: |
+| [Symphonies](symphonies/configs/config.yaml) | 37.96 | 12.15 | [model](<>) \| [log](<>) |
+
+## Citation
+
+```latex
+#TODO
+```
 
 ## License
 
