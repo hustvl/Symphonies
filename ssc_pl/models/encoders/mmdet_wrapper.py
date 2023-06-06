@@ -14,6 +14,7 @@ class MMDetWrapper(nn.Module):
                  custom_imports,
                  checkpoint_path=None,
                  embed_dims=256,
+                 scales=(4, 8, 16),
                  num_queries=100,
                  freeze=False):
         super().__init__()
@@ -35,7 +36,6 @@ class MMDetWrapper(nn.Module):
             for param in self.model.parameters():
                 param.requires_grad = False
 
-        num_levels = 3
         if embed_dims != self.hidden_dims:
             self.out_projs = nn.ModuleList([
                 nn.Sequential(
@@ -43,7 +43,7 @@ class MMDetWrapper(nn.Module):
                     nn.BatchNorm2d(embed_dims),
                     nn.ReLU(inplace=True),
                     nn.Conv2d(embed_dims, embed_dims, 1),
-                ) for _ in range(num_levels)
+                ) for _ in scales
             ])
 
     def forward(self, x):

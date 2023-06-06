@@ -146,6 +146,7 @@ class SymphoniesDecoder(nn.Module):
                  embed_dims,
                  num_classes,
                  num_layers,
+                 num_levels,
                  scene_shape,
                  project_scale,
                  image_shape,
@@ -165,8 +166,10 @@ class SymphoniesDecoder(nn.Module):
 
         self.voxel_proposal = VoxelProposalLayer(embed_dims, scene_shape)
         self.layers = nn.ModuleList([
-            SymphoniesLayer(embed_dims, query_update=True if i != num_layers - 1 else False)
-            for i in range(num_layers)
+            SymphoniesLayer(
+                embed_dims,
+                num_levels=num_levels,
+                query_update=True if i != num_layers - 1 else False) for i in range(num_layers)
         ])
 
         self.scene_embed = nn.Embedding(self.num_queries, embed_dims)

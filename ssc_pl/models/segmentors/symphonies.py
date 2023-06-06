@@ -21,17 +21,18 @@ class Symphonies(PLModelInterface):
             **kwargs  # optimizer, scheduler, evaluator
     ):
         super().__init__(**kwargs)
-        self.view_scales = view_scales
         self.volume_scale = volume_scale
         self.num_classes = num_classes
         self.class_weights = class_weights
         self.criterions = criterions
 
-        self.encoder = getattr(encoders, encoder.type)(embed_dims=embed_dims, **encoder.cfgs)
+        self.encoder = getattr(encoders, encoder.type)(
+            embed_dims=embed_dims, scales=view_scales, **encoder.cfgs)
         self.decoder = SymphoniesDecoder(
             embed_dims,
             num_classes,
             num_layers=3,
+            num_levels=len(view_scales),
             scene_shape=scene_size,
             project_scale=volume_scale,
             image_shape=(370, 1220),
