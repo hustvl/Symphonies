@@ -16,7 +16,7 @@ Haoyang Zhang<sup>2</sup>,
 
 ![arch](assets/arch.png)
 
-**TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves ***12.29 mIoU & 39.16 IoU*** on the SemanticKITTI *test* benchmark.
+**TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves a SOTA of ***13.04 mIoU & 40.71 IoU*** on the SemanticKITTI *val* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 
@@ -53,9 +53,17 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ## Results
 
-|                    Method                    |  IoU  | mIoU  |         Download         |
-| :------------------------------------------: | :---: | :---: | :----------------------: |
-| [Symphonies](symphonies/configs/config.yaml) | 37.96 | 12.15 | [model](<>) \| [log](<>) |
+1. **SemanticKITTI *val***
+
+    |                    Method                    |  IoU  | mIoU  |         Download         |
+    | :------------------------------------------: | :---: | :---: | :----------------------: |
+    | [Symphonies](symphonies/configs/config.yaml) | 40.71 | 13.04 | [model](<>) \| [log](<>) |
+
+2. **SemanticKITTI *test***
+
+    |                    Method                    |  IoU  | mIoU  |
+    | :------------------------------------------: | :---: | :---: |
+    | [Symphonies](symphonies/configs/config.yaml) | TODO  | TODO  |
 
 ## Citation
 

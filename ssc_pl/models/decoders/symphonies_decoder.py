@@ -6,8 +6,8 @@ from functools import reduce
 from itertools import product
 from torch.cuda.amp import autocast
 
-from ..layers import (TransformerLayer, DeformableTransformerLayer, nlc_to_nchw, nchw_to_nlc,
-                      DeformableSqueezeAttention, Upsample, LearnableSqueezePositionalEncoding)
+from ..layers import (TransformerLayer, DeformableTransformerLayer, nlc_to_nchw, nchw_to_nlc, ASPP,
+                      Upsample, DeformableSqueezeAttention, LearnableSqueezePositionalEncoding)
 from ..projections.cvt import generate_grid
 from .getr_decoder import flatten_fov_from_voxels, index_fov_back_to_voxels, interpolate_flatten
 
@@ -183,6 +183,7 @@ class SymphoniesDecoder(nn.Module):
         voxel_grid = generate_grid(scene_shape, scene_shape, offset=0.5, normalize=True)
         self.register_buffer('voxel_grid', voxel_grid)
 
+        self.aspp = ASPP(embed_dims, (1, 2))
         assert project_scale in (1, 2)
         self.cls_head = nn.Sequential(
             nn.Sequential(
@@ -239,6 +240,8 @@ class SymphoniesDecoder(nn.Module):
         for i, layer in enumerate(self.layers):
             scene_embed, inst_queries = layer(scene_embed, inst_queries, feats, scene_pos, inst_pos,
                                               ref_2d, ref_3d, ref_vox, fov_mask)
+            if i == 2:
+                scene_embed = self.aspp(scene_embed)
             if self.training or i == len(self.layers) - 1:
                 outs.append(self.cls_head(scene_embed))
         return outs
