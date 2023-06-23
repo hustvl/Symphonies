@@ -36,6 +36,8 @@ class TransformerLayer(nn.Module):
         self.norm1 = norm_layer(embed_dims)
         self.attn = nn.MultiheadAttention(embed_dims, num_heads, bias=qkv_bias, batch_first=True)
 
+        if mlp_ratio == 0:
+            return
         self.norm2 = norm_layer(embed_dims)
         self.ffn = nn.Sequential(
             nn.Linear(embed_dims, embed_dims * mlp_ratio),
@@ -53,6 +55,8 @@ class TransformerLayer(nn.Module):
             query = query + self.attn(self.norm1(query) + query_pos, key, value)[0]
         else:
             query = query + self.attn(self.norm1(query), key, value)[0]
+        if not hasattr(self, 'ffn'):
+            return query
         query = query + self.ffn(self.norm2(query))
         return query
 
@@ -74,6 +78,8 @@ class DeformableTransformerLayer(nn.Module):
         self.attn = attn_layer(
             embed_dims, num_heads, num_levels, num_points, batch_first=True, **kwargs)
 
+        if mlp_ratio == 0:
+            return
         self.norm2 = norm_layer(embed_dims)
         self.ffn = nn.Sequential(
             nn.Linear(embed_dims, embed_dims * mlp_ratio),
@@ -95,5 +101,7 @@ class DeformableTransformerLayer(nn.Module):
             reference_points=ref_pts,
             spatial_shapes=spatial_shapes,
             level_start_index=level_start_index)
+        if not hasattr(self, 'ffn'):
+            return query
         query = query + self.ffn(self.norm2(query))
         return query

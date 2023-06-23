@@ -36,15 +36,15 @@ class SymphoniesLayer(nn.Module):
 
     def __init__(self, embed_dims, num_heads=8, num_levels=3, num_points=4, query_update=True):
         super().__init__()
-        self.scene_query_cross_attn = TransformerLayer(embed_dims, num_heads)
+        self.query_image_cross_defrom_attn = DeformableTransformerLayer(
+            embed_dims, num_heads, num_levels, num_points)
+        self.scene_query_cross_attn = TransformerLayer(embed_dims, num_heads, mlp_ratio=0)
         self.scene_self_deform_attn = DeformableTransformerLayer(
             embed_dims,
             num_heads,
             num_levels=1,
             num_points=num_points * 2,
             attn_layer=DeformableSqueezeAttention)
-        self.query_image_cross_defrom_attn = DeformableTransformerLayer(
-            embed_dims, num_heads, num_levels, num_points, mlp_ratio=2)
 
         self.query_update = query_update
         if query_update:
@@ -54,8 +54,8 @@ class SymphoniesLayer(nn.Module):
                 num_levels=1,
                 num_points=num_points * 2,
                 attn_layer=DeformableSqueezeAttention,
-                mlp_ratio=2)
-            self.query_self_attn = TransformerLayer(embed_dims, num_heads, mlp_ratio=2)
+                mlp_ratio=0)
+            self.query_self_attn = TransformerLayer(embed_dims, num_heads)
 
     def forward(self,
                 scene_embed,
@@ -183,7 +183,7 @@ class SymphoniesDecoder(nn.Module):
         voxel_grid = generate_grid(scene_shape, scene_shape, offset=0.5, normalize=True)
         self.register_buffer('voxel_grid', voxel_grid)
 
-        self.aspp = ASPP(embed_dims, (1, 2))
+        self.aspp = ASPP(embed_dims, (1, 3))
         assert project_scale in (1, 2)
         self.cls_head = nn.Sequential(
             nn.Sequential(
