@@ -1,11 +1,10 @@
 # Symphonies (Scene-from-Insts) 🎻
 
-[![](https://img.shields.io/github/license/hustvl/Symphonies)](LICENSE)
 
-### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](TODO)**, NeurIPS 2023 Submission
+### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](TODO)**
 
-[Haoyi Jiang](https://github.com/npurson)<sup>1</sup>,
-[Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1</sup>,
+[Haoyi Jiang](https://github.com/npurson)<sup>1,*</sup>,
+[Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1,*</sup>,
 Naiyu Gao<sup>2</sup>,
 Haoyang Zhang<sup>2</sup>,
 [Wenyu Liu](http://eic.hust.edu.cn/professor/liuwenyu/)<sup>1</sup>,
@@ -14,9 +13,14 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
+[![arXiv](https://img.shields.io/badge/arXiv-xxxx-xxxxx.svg)](https://arxiv.org/abs/xxxxx)
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
+
+
+
 ![arch](assets/arch.png)
 
-**TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves a SOTA of ***13.04 mIoU & 40.71 IoU*** on the SemanticKITTI *val* benchmark.
+**TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves a SOTA of ***13.44 mIoU & 41.44 IoU*** on the SemanticKITTI *val* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 
@@ -57,7 +61,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
     |                    Method                    |  IoU  | mIoU  |         Download         |
     | :------------------------------------------: | :---: | :---: | :----------------------: |
-    | [Symphonies](symphonies/configs/config.yaml) | 40.71 | 13.04 | [model](<>) \| [log](<>) |
+    | [Symphonies](symphonies/configs/config.yaml) | 41.44 | 13.44 | [model](<>) \| [log](<>) |
 
 2. **SemanticKITTI *test***
 
@@ -67,9 +71,18 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ## Citation
 
-```latex
-#TODO
+
+If you find our paper and code useful for your research, please consider giving a star :star:   and citation :pencil: :
+
+```BibTeX
+@article{
+      title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries}, 
+      author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Wenyu Liu and Xinggang Wang},
+      journal={arXiv preprint arXiv:2306.xxxxx},
+      year={2023}
+}
 ```
+
 
 ## License
 
