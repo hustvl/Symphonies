@@ -3,8 +3,8 @@
 
 ### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](TODO)**
 
-[Haoyi Jiang](https://github.com/npurson)<sup>1,*</sup>,
-[Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1,*</sup>,
+[Haoyi Jiang](https://github.com/npurson)<sup>1,✢</sup>,
+[Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1,✢</sup>,
 Naiyu Gao<sup>2</sup>,
 Haoyang Zhang<sup>2</sup>,
 [Wenyu Liu](http://eic.hust.edu.cn/professor/liuwenyu/)<sup>1</sup>,
