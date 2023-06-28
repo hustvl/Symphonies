@@ -80,7 +80,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 If you find our paper and code useful for your research, please consider giving a star :star:   and citation :pencil: :
 
 ```BibTeX
-@article{
+@article{SymphoniesJiangCGZLW2023,
       title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries}, 
       author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Wenyu Liu and Xinggang Wang},
       journal={arXiv preprint arXiv:2306.15670},
