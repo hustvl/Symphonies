@@ -13,21 +13,18 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
-[![arXiv](https://img.shields.io/badge/arXiv-2306.15670-green.svg)](https://arxiv.org/abs/2306.15670)
-[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
-
-
+[![arXiv](https://img.shields.io/badge/arXiv-2306.15670-red)](https://arxiv.org/abs/2306.15670)
+[![License: MIT](https://img.shields.io/github/license/hustvl/symphonies)](LICENSE)
 
 ![arch](assets/arch.png)
 
-**TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves a SOTA of ***13.44 mIoU & 41.44 IoU*** on the SemanticKITTI *val* benchmark.
+**TL;DR:** Our paper delve into enhancing SSC through the utilization of instance-centric representations. We propose a novel paradigm that integrates ***instance queries*** to facilitate ***instance semantics*** and capture ***global context***. Our approach achieves SOTA results of ***13.02 mIoU & 41.07 IoU*** on the SemanticKITTI *test* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 
 ## News
 
-`June 28`: We have released the [arXiv](https://arxiv.org/abs/2306.15670) paper of Symphonies!
-
+***June 28***: We have released the [arXiv](https://arxiv.org/abs/2306.15670) paper of Symphonies!
 
 ## Installation
 
@@ -54,7 +51,13 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
         * https://hydra.cc/docs/advanced/hydra-command-line-flags/
         * https://hydra.cc/docs/advanced/override_grammar/basic/
 
-2. **Generating outputs**
+2. **Testing**
+
+    ```shell
+    python tools/test.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
+    ```
+
+3. **Generating outputs** (for vis.)
 
     ```shell
     python tools/generate_outputs.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
@@ -62,32 +65,25 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ## Results
 
-1. **SemanticKITTI *val***
+1. **SemanticKITTI**
 
-    |                    Method                    |  IoU  | mIoU  |         Download         |
-    | :------------------------------------------: | :---: | :---: | :----------------------: |
-    | [Symphonies](symphonies/configs/config.yaml) | 41.44 | 13.44 | [model](<>) \| [log](<>) |
-
-2. **SemanticKITTI *test***
-
-    |                    Method                    |  IoU  | mIoU  |
-    | :------------------------------------------: | :---: | :---: |
-    | [Symphonies](symphonies/configs/config.yaml) | TODO  | TODO  |
+    |                    Method                    | Split |  IoU  | mIoU  |         Download         |
+    | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
+    | [Symphonies](symphonies/configs/config.yaml) | test  | 41.07 | 13.02 | [model](<https://github.com/hustvl/Symphonies/releases/download/v1.0/e28_miou0.1344.ckpt>) |
+    | [Symphonies](symphonies/configs/config.yaml) | val   | 41.44 | 13.44 | [log](<https://github.com/hustvl/Symphonies/releases/download/v1.0/log>) |
 
 ## Citation
 
-
-If you find our paper and code useful for your research, please consider giving a star :star:   and citation :pencil: :
+If you find our paper and code useful for your research, please consider giving this repo a star :star: or citing :pencil::
 
 ```BibTeX
-@article{SymphoniesJiangCGZLW2023,
-      title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries}, 
+@article{jiang2023symphonies,
+      title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries},
       author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Wenyu Liu and Xinggang Wang},
       journal={arXiv preprint arXiv:2306.15670},
       year={2023}
 }
 ```
-
 
 ## License
 
