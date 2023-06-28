@@ -1,7 +1,7 @@
 # Symphonies (Scene-from-Insts) 🎻
 
 
-### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](TODO)**
+### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](https://arxiv.org/abs/2306.15670)**
 
 [Haoyi Jiang](https://github.com/npurson)<sup>1,✢</sup>,
 [Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1,✢</sup>,
@@ -13,7 +13,7 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
-[![arXiv](https://img.shields.io/badge/arXiv-xxxx-xxxxx.svg)](https://arxiv.org/abs/xxxxx)
+[![arXiv](https://img.shields.io/badge/arXiv-2306-15670.svg)](https://arxiv.org/abs/2306.15670)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 
 
@@ -78,7 +78,7 @@ If you find our paper and code useful for your research, please consider giving 
 @article{
       title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries}, 
       author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Wenyu Liu and Xinggang Wang},
-      journal={arXiv preprint arXiv:2306.xxxxx},
+      journal={arXiv preprint arXiv:2306.15670},
       year={2023}
 }
 ```
