@@ -85,6 +85,10 @@ If you find our paper and code useful for your research, please consider giving 
 }
 ```
 
+## Acknowledgements
+
+This project is based on [MonoScene](https://github.com/astra-vision/MonoScene), [MaskDINO](https://github.com/IDEA-Research/MaskDINO), [TmPL](https://github.com/npurson/tmpl), and [VoxFormer](https://github.com/NVlabs/VoxFormer). Thanks for your wonderful work!
+
 ## License
 
 Released under the [MIT](LICENSE) License.
