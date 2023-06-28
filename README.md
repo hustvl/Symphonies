@@ -13,7 +13,7 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
-[![arXiv](https://img.shields.io/badge/arXiv-2306-15670.svg)](https://arxiv.org/abs/2306.15670)
+[![arXiv](https://img.shields.io/badge/arXiv-2306.15670-green.svg)](https://arxiv.org/abs/2306.15670)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 
 
@@ -23,6 +23,11 @@ Haoyang Zhang<sup>2</sup>,
 **TL;DR:** We delve into a novel query-based paradigm for SSC that incorporates ***instance queries*** to facilitate the ***instance-level semantics*** and ***global context***. Our approach achieves a SOTA of ***13.44 mIoU & 41.44 IoU*** on the SemanticKITTI *val* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
+
+## News
+
+`June 28`: We have released the [arXiv](https://arxiv.org/abs/2306.15670) paper of Symphonies!
+
 
 ## Installation
 
