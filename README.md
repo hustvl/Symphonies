@@ -16,11 +16,15 @@ Haoyang Zhang<sup>2</sup>,
 [![arXiv](https://img.shields.io/badge/arXiv-2306.15670-red)](https://arxiv.org/abs/2306.15670)
 [![License: MIT](https://img.shields.io/github/license/hustvl/symphonies)](LICENSE)
 
-![arch](assets/arch.png)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-from-a-single-1)](https://paperswithcode.com/sota/3d-semantic-scene-completion-from-a-single-1?p=symphonize-3d-semantic-scene-completion-with)
 
 **TL;DR:** Our paper delve into enhancing SSC through the utilization of instance-centric representations. We propose a novel paradigm that integrates ***instance queries*** to facilitate ***instance semantics*** and capture ***global context***. Our approach achieves SOTA results of ***13.02 mIoU & 41.07 IoU*** on the SemanticKITTI *test* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
+
+![arch](assets/arch.png)
+
+![vis](assets/vis.png)
 
 ## News
 
