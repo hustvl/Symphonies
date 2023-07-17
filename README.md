@@ -30,7 +30,9 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ***June 28***: We have released the [arXiv](https://arxiv.org/abs/2306.15670) paper of Symphonies!
 
-## Installation
+## Preliminary
+
+### Installation
 
 1. Install PyTorch and Torchvision referring to https://pytorch.org/get-started/locally/.
 2. Install MMDetection referring to https://mmdetection.readthedocs.io/en/latest/get_started.html#installation.
@@ -39,6 +41,10 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     ```bash
     pip install -r requirements.txt
     ```
+
+### Prepare Dataset
+
+Generate depth predications with pre-trained MobileStereoNet referred to VoxFormer https://github.com/NVlabs/VoxFormer/tree/main/preprocess#3-image-to-depth.
 
 ## Usage
 
