@@ -11,28 +11,29 @@ from torchvision import transforms as T
 from ...utils.helper import vox2pix, compute_local_frustums, compute_CP_mega_matrix
 
 SPLITS = {
-    'train': ('00', '01', '02', '03', '04', '05', '06', '07', '09', '10'),
-    'val': ('08', ),
-    'test': ('11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'),
+    'train':
+    ('2013_05_28_drive_0004_sync', '2013_05_28_drive_0000_sync', '2013_05_28_drive_0010_sync',
+     '2013_05_28_drive_0002_sync', '2013_05_28_drive_0003_sync', '2013_05_28_drive_0005_sync',
+     '2013_05_28_drive_0007_sync'),
+    'val': ('2013_05_28_drive_0006_sync'),
+    'test': ('2013_05_28_drive_0009_sync'),
 }
 
-SEMANTIC_KITTI_CLASS_FREQ = torch.tensor([
-    5.41773033e09, 1.57835390e07, 1.25136000e05, 1.18809000e05, 6.46799000e05, 8.21951000e05,
-    2.62978000e05, 2.83696000e05, 2.04750000e05, 6.16887030e07, 4.50296100e06, 4.48836500e07,
-    2.26992300e06, 5.68402180e07, 1.57196520e07, 1.58442623e08, 2.06162300e06, 3.69705220e07,
-    1.15198800e06, 3.34146000e05
+KITTI_360_CLASS_FREQ = torch.tensor([
+    2264087502, 20098728, 104972, 96297, 1149426, 4051087, 125103, 105540713, 16292249, 45297267,
+    14454132, 110397082, 6766219, 295883213, 50037503, 1561069, 406330, 30516166, 1950115
 ])
 
 
-class SemanticKITTI(Dataset):
+class KITTI360(Dataset):
 
     META_INFO = {
         'class_weights':
-        1 / torch.log(SEMANTIC_KITTI_CLASS_FREQ + 1e-6),
+        1 / torch.log(KITTI_360_CLASS_FREQ + 1e-6),
         'class_names':
-        ('empty', 'car', 'bicycle', 'motorcycle', 'truck', 'other-vehicle', 'person', 'bicyclist',
-         'motorcyclist', 'road', 'parking', 'sidewalk', 'other-ground', 'building', 'fence',
-         'vegetation', 'trunk', 'terrain', 'pole', 'traffic-sign')
+        ('empty', 'car', 'bicycle', 'motorcycle', 'truck', 'other-vehicle', 'person', 'road',
+         'parking', 'sidewalk', 'other-ground', 'building', 'fence', 'vegetation', 'terrain',
+         'pole', 'traffic-sign', 'other-structure', 'other-object')
     }
 
     def __init__(
@@ -58,23 +59,21 @@ class SemanticKITTI(Dataset):
         self.output_scale = int(self.project_scale / 2)
         self.context_prior = context_prior
         self.flip = flip
-        self.num_classes = 20
+        self.num_classes = 19
 
         self.voxel_origin = np.array((0, -25.6, -2))
         self.voxel_size = 0.2
         self.scene_size = (51.2, 51.2, 6.4)
-        self.img_shape = (1220, 370)
+        self.img_shape = (1408, 376)
 
         self.scans = []
+        calib = self.read_calib()
         for sequence in self.sequences:
-            calib = self.read_calib(
-                osp.join(self.data_root, 'dataset', 'sequences', sequence, 'calib.txt'))
             P = calib['P2']
             T_velo_2_cam = calib['Tr']
             proj_matrix = P @ T_velo_2_cam
 
-            glob_path = osp.join(self.data_root, 'dataset', 'sequences', sequence, 'voxels',
-                                 '*.bin')
+            glob_path = osp.join(self.data_root, 'data_2d_raw', sequence, 'voxels', '*.bin')
             for voxel_path in glob.glob(glob_path):
                 self.scans.append({
                     'sequence': sequence,
@@ -139,8 +138,10 @@ class SemanticKITTI(Dataset):
             label['CP_mega_matrix'] = CP_mega_matrix
 
         if self.depth_root is not None:
-            depth_path = osp.join(self.depth_root, 'sequences', sequence, frame_id + '.npy')
-            depth = np.load(depth_path)[:self.img_shape[1], :self.img_shape[0]]
+            depth_path = osp.join(self.depth_root, sequence, frame_id + '.png')
+            depth = Image.open(depth_path)
+            depth = np.asarray(
+                depth, dtype=np.float32)[:self.img_shape[1], :self.img_shape[0]] / 255.0
             if flip:
                 depth = np.flip(depth, axis=1).copy()
             data['depth'] = depth
@@ -158,7 +159,7 @@ class SemanticKITTI(Dataset):
             label['frustums_masks'] = frustums_masks
             label['frustums_class_dists'] = frustums_class_dists
 
-        img_path = osp.join(self.data_root, 'dataset', 'sequences', sequence, 'image_2',
+        img_path = osp.join(self.data_root, 'data_2d_raw', sequence, 'image_00/data_rect',
                             frame_id + '.png')
         img = Image.open(img_path).convert('RGB')
         img = np.asarray(img, dtype=np.float32) / 255.0
@@ -179,17 +180,42 @@ class SemanticKITTI(Dataset):
         return data, label
 
     @staticmethod
-    def read_calib(calib_path):
-        calib_data = {}
-        with open(calib_path, 'r') as f:
-            for line in f.readlines():
-                if line == '\n':
-                    break
-                key, value = line.split(':', 1)
-                calib_data[key] = np.array([float(x) for x in value.split()])
+    def read_calib():
+        P = np.array([
+            552.554261,
+            0.000000,
+            682.049453,
+            0.000000,
+            0.000000,
+            552.554261,
+            238.769549,
+            0.000000,
+            0.000000,
+            0.000000,
+            1.000000,
+            0.000000,
+        ]).reshape(3, 4)
 
-        ret = {}
-        ret['P2'] = calib_data['P2'].reshape(3, 4)  # 3x4 projection matrix for left camera
-        ret['Tr'] = np.identity(4)
-        ret['Tr'][:3, :4] = calib_data['Tr'].reshape(3, 4)
-        return ret
+        cam2velo = np.array([
+            0.04307104361,
+            -0.08829286498,
+            0.995162929,
+            0.8043914418,
+            -0.999004371,
+            0.007784614041,
+            0.04392796942,
+            0.2993489574,
+            -0.01162548558,
+            -0.9960641394,
+            -0.08786966659,
+            -0.1770225824,
+        ]).reshape(3, 4)
+        C2V = np.concatenate([cam2velo, np.array([0, 0, 0, 1]).reshape(1, 4)], axis=0)
+        V2C = np.linalg.inv(C2V)
+        V2C = V2C[:3, :]
+
+        out = {}
+        out['P2'] = P
+        out['Tr'] = np.identity(4)
+        out['Tr'][:3, :4] = V2C
+        return out

@@ -20,11 +20,11 @@ class NYUv2(Dataset):
                         'table', 'tvs', 'furn', 'objs'),
     }
 
-    def __init__(self, split, data_root, label_root, frustum_size=4, load_gt_depth=False):
+    def __init__(self, split, data_root, label_root, depth_root=None, frustum_size=4):
         self.data_root = osp.join(data_root, 'NYU' + split)
         self.label_root = osp.join(label_root, 'NYU' + split)
+        self.depth_root = osp.join(depth_root, 'NYU' + split) if depth_root else None
         self.frustum_size = frustum_size
-        self.load_gt_depth = load_gt_depth
         self.num_classes = 12
 
         self.voxel_size = 0.08  # meters
@@ -83,7 +83,7 @@ class NYUv2(Dataset):
         img = np.asarray(img, dtype=np.float32) / 255.0
         data['img'] = self.transforms(img)  # (3, H, W)
 
-        if self.load_gt_depth:
+        if self.depth_root is not None:
             depth_path = osp.join(self.data_root, filename + '.png')
             depth = Image.open(depth_path)
             data['depth'] = np.array(depth)

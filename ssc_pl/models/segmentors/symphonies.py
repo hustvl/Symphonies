@@ -16,6 +16,9 @@ class Symphonies(PLModelInterface):
             view_scales,
             volume_scale,
             num_classes,
+            image_shape=(370, 1220),
+            voxel_size=0.2,
+            downsample_z=2,
             class_weights=None,
             criterions=None,
             **kwargs  # optimizer, scheduler, evaluator
@@ -35,9 +38,9 @@ class Symphonies(PLModelInterface):
             num_levels=len(view_scales),
             scene_shape=scene_size,
             project_scale=volume_scale,
-            image_shape=(370, 1220),
-            voxel_size=0.2,
-            downsample_z=2)
+            image_shape=image_shape,
+            voxel_size=voxel_size,
+            downsample_z=downsample_z)
 
     def forward(self, inputs):
         pred_insts = self.encoder(inputs['img'])

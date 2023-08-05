@@ -18,6 +18,9 @@ model:
     scene_size: [60, 60, 36]
     volume_scale: 1
     num_classes: 12
+    image_shape: [480, 640]
+    voxel_size: 0.08
+    downsample_z: 1
 
 solver:
   evaluator:
