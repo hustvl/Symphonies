@@ -19,7 +19,7 @@ model:
     scene_size: [256, 256, 32]
     volume_scale: 2
     num_classes: 19
-
+    image_shape: [376, 1408]
 solver:
   evaluator:
     type: SSCMetrics

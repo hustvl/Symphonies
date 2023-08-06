@@ -86,7 +86,7 @@ class NYUv2(Dataset):
         if self.depth_root is not None:
             depth_path = osp.join(self.data_root, filename + '.png')
             depth = Image.open(depth_path)
-            data['depth'] = np.array(depth)
+            data['depth'] = np.array(depth) / 8000.  # noqa
 
         def ndarray_to_tensor(data: dict):
             for k, v in data.items():

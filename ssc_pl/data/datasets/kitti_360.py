@@ -15,8 +15,8 @@ SPLITS = {
     ('2013_05_28_drive_0004_sync', '2013_05_28_drive_0000_sync', '2013_05_28_drive_0010_sync',
      '2013_05_28_drive_0002_sync', '2013_05_28_drive_0003_sync', '2013_05_28_drive_0005_sync',
      '2013_05_28_drive_0007_sync'),
-    'val': ('2013_05_28_drive_0006_sync'),
-    'test': ('2013_05_28_drive_0009_sync'),
+    'val': ('2013_05_28_drive_0006_sync', ),
+    'test': ('2013_05_28_drive_0009_sync', ),
 }
 
 KITTI_360_CLASS_FREQ = torch.tensor([
@@ -124,12 +124,11 @@ class KITTI360(Dataset):
             data[f'fov_mask_{scale_3d}'] = fov_mask
 
         flip = random.random() > 0.5 if self.flip and self.split == 'train' else False
-        if self.split != 'test':
-            target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
-            target = np.load(target_1_path)
-            if flip:
-                target = np.flip(target, axis=1).copy()
-            label['target'] = target
+        target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
+        target = np.load(target_1_path)
+        if flip:
+            target = np.flip(target, axis=1).copy()
+        label['target'] = target
 
         if self.context_prior:
             target_8_path = osp.join(self.label_root, sequence, frame_id + '_1_8.npy')
@@ -147,17 +146,16 @@ class KITTI360(Dataset):
             data['depth'] = depth
 
         # Compute the masks, each indicate the voxels of a local frustum
-        if self.split != 'test':
-            frustums_masks, frustums_class_dists = compute_local_frustums(
-                data[f'projected_pix_{self.output_scale}'],
-                data[f'pix_z_{self.output_scale}'],
-                target,
-                self.img_shape,
-                n_classes=self.num_classes,
-                size=self.frustum_size,
-            )
-            label['frustums_masks'] = frustums_masks
-            label['frustums_class_dists'] = frustums_class_dists
+        frustums_masks, frustums_class_dists = compute_local_frustums(
+            data[f'projected_pix_{self.output_scale}'],
+            data[f'pix_z_{self.output_scale}'],
+            target,
+            self.img_shape,
+            n_classes=self.num_classes,
+            size=self.frustum_size,
+        )
+        label['frustums_masks'] = frustums_masks
+        label['frustums_class_dists'] = frustums_class_dists
 
         img_path = osp.join(self.data_root, 'data_2d_raw', sequence, 'image_00/data_rect',
                             frame_id + '.png')
