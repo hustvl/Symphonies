@@ -64,7 +64,6 @@ class SSCMetrics(Metric):
             pred = preds[i]
             target = targets[i]
             if nonempty is not None:
-                # TODO: check whether it doesn't ignore 255?
                 nonempty_ = nonempty[i].flatten()
                 pred = pred[nonempty_]
                 target = target[nonempty_]
