@@ -1,7 +1,7 @@
-# Refer to
+# Refer to Hydra documentation for more information about config group defaults.
 # - https://hydra.cc/docs/tutorials/basic/your_first_app/defaults/
 # - https://hydra.cc/docs/patterns/configuring_experiments/
-# for more information about config group defaults
+
 defaults:
   - datasets: semantic_kitti
   - models: symphonies
@@ -9,13 +9,13 @@ defaults:
   - _self_
 
 hydra:
-  mode: MULTIRUN  # otherwise the DDP output files may be in a mess, see https://github.com/Lightning-AI/lightning/pull/11617
+  mode: MULTIRUN  # refer to https://github.com/Lightning-AI/lightning/pull/11617
   sweep:
-    dir: outputs/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M}
 
 trainer:
   devices: 4
   accelerator: gpu
   strategy: ddp
   sync_batchnorm: True
-  precision: 16
+  # precision: 16-mixed

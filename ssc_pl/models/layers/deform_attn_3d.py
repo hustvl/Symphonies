@@ -9,12 +9,11 @@ import mmengine
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from mmcv.ops.multi_scale_deform_attn import MultiScaleDeformableAttnFunction
+from mmcv.utils import IS_CUDA_AVAILABLE, IS_MLU_AVAILABLE
 from mmengine.model import BaseModule, constant_init, xavier_init
 from mmengine.registry import MODELS
 from mmengine.utils import deprecated_api_warning
-
-from mmcv.utils import IS_CUDA_AVAILABLE, IS_MLU_AVAILABLE
-from mmcv.ops.multi_scale_deform_attn import MultiScaleDeformableAttnFunction
 
 __all__ = ['MultiScaleDeformableAttention3D']
 

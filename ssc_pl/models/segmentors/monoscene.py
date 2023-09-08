@@ -1,36 +1,36 @@
-from .interface import PLModelInterface
+import torch.nn as nn
+
+from ... import build_from_configs
 from .. import encoders
 from ..decoders import UNet3D
+from ..losses import (ce_ssc_loss, context_relation_loss,
+                      frustum_proportion_loss, geo_scal_loss, sem_scal_loss)
 from ..projections import MultiScaleFLoSP
-from ..losses import (ce_ssc_loss, sem_scal_loss, geo_scal_loss, context_relation_loss,
-                      frustum_proportion_loss)
 
 
-class MonoScene(PLModelInterface):
+class MonoScene(nn.Module):
 
     def __init__(
-            self,
-            encoder,
-            channels,
-            scene_size,
-            view_scales,
-            volume_scale,
-            num_classes,
-            num_relations=4,
-            context_prior=True,
-            class_weights=None,
-            criterions=None,
-            **kwargs  # optimizer, scheduler, evaluator
+        self,
+        encoder,
+        channels,
+        scene_size,
+        view_scales,
+        volume_scale,
+        num_classes,
+        num_relations=4,
+        context_prior=True,
+        class_weights=None,
+        criterions=None,
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.view_scales = view_scales
         self.volume_scale = volume_scale
         self.num_classes = num_classes
         self.class_weights = class_weights
         self.criterions = criterions
 
-        self.encoder = getattr(encoders, encoder.type)(
-            **encoder.cfgs, channels=channels, scales=view_scales)
+        self.encoder = build_from_configs(encoders, encoder, channels=channels, scales=view_scales)        
         self.decoder = UNet3D(channels, scene_size, num_classes, num_relations, volume_scale,
                               context_prior)
         self.project = MultiScaleFLoSP(scene_size, view_scales, volume_scale)
@@ -45,7 +45,7 @@ class MonoScene(PLModelInterface):
         outs = self.decoder(x3d)
         return outs
 
-    def losses(self, pred, target):
+    def loss(self, pred, target):
         loss_map = {
             'ce_ssc': ce_ssc_loss,
             'relation': context_relation_loss,

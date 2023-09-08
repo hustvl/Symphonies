@@ -1,13 +1,15 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import copy
 from functools import reduce
 from itertools import product
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from torch.cuda.amp import autocast
 
-from ..layers import (TransformerLayer, DeformableTransformerLayer, nlc_to_nchw, nchw_to_nlc, ASPP,
-                      Upsample, DeformableSqueezeAttention, LearnableSqueezePositionalEncoding)
+from ..layers import (ASPP, DeformableSqueezeAttention, DeformableTransformerLayer,
+                      LearnableSqueezePositionalEncoding, TransformerLayer, Upsample,
+                      nchw_to_nlc, nlc_to_nchw)
 from ..projections.cvt import generate_grid
 from .getr_decoder import flatten_fov_from_voxels, index_fov_back_to_voxels, interpolate_flatten
 

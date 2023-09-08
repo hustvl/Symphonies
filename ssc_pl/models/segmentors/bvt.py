@@ -1,9 +1,10 @@
-import torch
-import torch.nn as nn
 import math
 
-from .monoscene import MonoScene
+import torch
+import torch.nn as nn
+
 from ..decoders import BilateralVoxelTransformer
+from .monoscene import MonoScene
 
 
 def get_sine_pos_embed(

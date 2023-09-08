@@ -15,8 +15,8 @@ class FLoSP(nn.Module):
         src = x2d.flatten(2)
         src = F.pad(src, (0, 1), value=0)  # bs, c, h*w+1
 
-        img_indices = (projected_pix[..., 1].clamp(0, h - 1) * w +
-                       projected_pix[..., 0].clamp(0, w - 1))
+        img_indices = (
+            projected_pix[..., 1].clamp(0, h - 1) * w + projected_pix[..., 0].clamp(0, w - 1))
         img_indices[~fov_mask] = h * w
         feats = []
         for src_, indices in zip(src, img_indices):

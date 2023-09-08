@@ -2,11 +2,9 @@
 
 model:
   type: GeometryTransformer
-  cfgs:
-    encoder:
-      type: hrnet32
-      cfgs:
-        pretrained: True
-    view_scales: [4, 8, 16]
-    num_layers: [2, 3, 2, 1]
-    criterions: [ce_ssc, sem_scal, geo_scal]
+  encoder:
+    type: hrnet32
+    pretrained: True
+  view_scales: [4, 8, 16]
+  num_layers: [2, 3, 2, 1]
+  criterions: [ce_ssc, sem_scal, geo_scal]

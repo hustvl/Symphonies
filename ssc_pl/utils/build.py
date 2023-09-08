@@ -1,13 +1,12 @@
-import os
-import lightning.pytorch as pl
-from omegaconf import DictConfig, open_dict
+from lightning.pytorch import callbacks, loggers
+from omegaconf import DictConfig, OmegaConf, open_dict
 
 from .tabular_logger import TabularLogger
 
 
-def build_from_configs(cfg: DictConfig):
+def pre_build_callbacks(cfg: DictConfig):
     if cfg.trainer.devices == 1 and cfg.trainer.get('strategy'):
-        cfg.trainer.strategy = None
+        cfg.trainer.strategy = 'auto'
     with open_dict(cfg):
         cfg.trainer.enable_progress_bar = False
 
@@ -21,21 +20,32 @@ def build_from_configs(cfg: DictConfig):
         cfg.data.datasets.cfgs.depth_root = cfg.depth_root
 
     output_dir = 'outputs'
-    callbacks = {
-        'logger': [
-            # pl.loggers.TensorBoardLogger(save_dir=output_dir, name=None),
-            TabularLogger(save_dir=output_dir, name=None)
-        ],
-        'callbacks': [
-            pl.callbacks.LearningRateMonitor(logging_interval='step'),
-            pl.callbacks.ModelCheckpoint(
-                dirpath=os.path.join(output_dir, cfg.save_dir)
-                if cfg.get('save_dir') else output_dir,
-                filename='e{epoch}_miou{val_mIoU:.4f}',
-                monitor='val_mIoU',
-                mode='max',
-                auto_insert_metric_name=False),
-            # pl.callbacks.ModelSummary(max_depth=-1)
-        ]
-    }
-    return cfg, callbacks
+
+    logger = [loggers.TensorBoardLogger(save_dir=output_dir, name=None)]
+    callback = [
+        callbacks.LearningRateMonitor(logging_interval='step'),
+        callbacks.ModelCheckpoint(
+            dirpath=logger[0].log_dir,
+            filename='e{epoch}_miou{val/mIoU:.4f}',
+            monitor='val/mIoU',
+            mode='max',
+            auto_insert_metric_name=False),
+        callbacks.RichModelSummary(max_depth=1)
+    ]
+
+    if cfg.trainer.get('enable_progress_bar', True):
+        callback.append(callbacks.RichProgressBar())
+    else:
+        logger.append(TabularLogger(save_dir=output_dir, name=None, version=logger[0].version))
+
+    return cfg, dict(logger=logger, callbacks=callback)
+
+
+def build_from_configs(obj, cfg: DictConfig, **kwargs):
+    if cfg is None:
+        return None
+    cfg = cfg.copy()
+    if isinstance(cfg, DictConfig):
+        OmegaConf.set_struct(cfg, False)
+    type = cfg.pop('type')
+    return getattr(obj, type)(**cfg, **kwargs)

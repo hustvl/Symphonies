@@ -1,6 +1,7 @@
+from itertools import chain
+
 import torch
 import torch.nn as nn
-from itertools import chain
 
 
 class LearnableSqueezePositionalEncoding(nn.Module):

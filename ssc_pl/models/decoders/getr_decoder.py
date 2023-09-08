@@ -1,7 +1,8 @@
+from functools import reduce
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functools import reduce
 from einops import rearrange
 
 from ..layers import Process, Upsample

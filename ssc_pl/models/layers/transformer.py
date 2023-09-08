@@ -1,6 +1,6 @@
-import torch.nn as nn
 from functools import reduce
 
+import torch.nn as nn
 from mmcv.ops import MultiScaleDeformableAttention
 
 

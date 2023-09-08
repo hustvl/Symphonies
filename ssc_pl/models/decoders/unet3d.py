@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from ..layers import Process, Upsample, Downsample, SegmentationHead, CPMegaVoxels
+from ..layers import CPMegaVoxels, Downsample, Process, SegmentationHead, Upsample
 
 
 class UNet3D(nn.Module):

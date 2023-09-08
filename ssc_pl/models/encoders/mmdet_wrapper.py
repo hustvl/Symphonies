@@ -1,10 +1,11 @@
-import torch
-import torch.nn as nn
 from importlib import import_module
 
+import torch
+import torch.nn as nn
+
 from mmengine.config import Config
-from mmdet.registry import MODELS
 from mmdet.models.layers import inverse_sigmoid
+from mmdet.registry import MODELS
 
 
 class MMDetWrapper(nn.Module):

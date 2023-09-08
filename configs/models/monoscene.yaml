@@ -2,23 +2,20 @@
 
 model:
   type: MonoScene
-  cfgs:
-    encoder:
-      type: UNet2D
-      cfgs:
-        hub_cfg:
-          repo_or_dir: rwightman/gen-efficientnet-pytorch:master
-          model: tf_efficientnet_b7_ns
-          pretrained: True
-        in_channels: [3, 32, 48, 80, 224, 2560]
-        #   model: tf_efficientnet_b3
-        #   pretrained: True
-        # in_channels: [3, 24, 32, 48, 136, 1536]
-    view_scales: [1, 2, 4, 8]
-    context_prior: True
-    criterions: [ce_ssc, relation, sem_scal, geo_scal, frustum]
+  encoder:
+    type: UNet2D
+    hub_cfg:
+      repo_or_dir: rwightman/gen-efficientnet-pytorch:master
+      model: tf_efficientnet_b7_ns
+      pretrained: True
+    in_channels: [3, 32, 48, 80, 224, 2560]
+    #   model: tf_efficientnet_b3
+    #   pretrained: True
+    # in_channels: [3, 24, 32, 48, 136, 1536]
+  view_scales: [1, 2, 4, 8]
+  context_prior: True
+  criterions: [ce_ssc, relation, sem_scal, geo_scal, frustum]
 
 data:
   datasets:
-    cfgs:
-      context_prior: True
+    context_prior: True

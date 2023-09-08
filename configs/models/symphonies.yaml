@@ -2,19 +2,16 @@
 
 model:
   type: Symphonies
-  cfgs:
-    embed_dims: 128
-    view_scales: [4, 8, 16]
-    encoder:
-      type: MMDetWrapper
-      cfgs:
-        config_path: maskdino/configs/maskdino_r50_8xb2-panoptic-export.py
-        custom_imports: maskdino
-        checkpoint_path: ../../backups/maskdino_r50_50e_300q_panoptic_pq53.0.pth
-    criterions: [ce_ssc, sem_scal, geo_scal, frustum]
+  embed_dims: 128
+  view_scales: [4, 8, 16]
+  encoder:
+    type: MMDetWrapper
+    config_path: maskdino/configs/maskdino_r50_8xb2-panoptic-export.py
+    custom_imports: maskdino
+    checkpoint_path: ../../backups/maskdino_r50_50e_300q_panoptic_pq53.0.pth
+  criterions: [ce_ssc, sem_scal, geo_scal, frustum]
 
-solver:
-  optimizer:
-    paramwise_cfg:
-      - name: encoder.model
-        lr_mult: 0.1
+optimizer:
+  paramwise_cfg:
+    - name: encoder.model
+      lr_mult: 0.1

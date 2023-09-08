@@ -13,14 +13,14 @@ Haoyang Zhang<sup>2</sup>,
 <sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
 
-[![arXiv](https://img.shields.io/badge/arXiv-2306.15670-red)](https://arxiv.org/abs/2306.15670)
+[![arXiv](https://img.shields.io/badge/arXiv-2306.15670-red?logo=arXiv&logoColor=red)](https://arxiv.org/abs/2306.15670)
 [![License: MIT](https://img.shields.io/github/license/hustvl/symphonies)](LICENSE)
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-from-a-single-1)](https://paperswithcode.com/sota/3d-semantic-scene-completion-from-a-single-1?p=symphonize-3d-semantic-scene-completion-with)
 
 **TL;DR:** Our paper delve into enhancing SSC through the utilization of instance-centric representations. We propose a novel paradigm that integrates ***instance queries*** to facilitate ***instance semantics*** and capture ***global context***. Our approach achieves SOTA results of ***13.02 mIoU & 41.07 IoU*** on the SemanticKITTI *test* benchmark.
 
-This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL development with [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
+This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL experimentation development built upon [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 
 ![arch](assets/arch.png)
 
@@ -44,9 +44,17 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ### Prepare Dataset
 
-Generate depth predications with pre-trained MobileStereoNet referred to VoxFormer https://github.com/NVlabs/VoxFormer/tree/main/preprocess#3-image-to-depth.
+1. Download the RGB images, calibration files, and preprocess the labels, referring to the documentation of [VoxFormer](https://github.com/NVlabs/VoxFormer/blob/main/docs/prepare_dataset.md) or [MonoScene](https://github.com/astra-vision/MonoScene#semantickitti).
+
+2. Generate depth predications with pre-trained MobileStereoNet referring to VoxFormer https://github.com/NVlabs/VoxFormer/tree/main/preprocess#3-image-to-depth.
 
 ## Usage
+
+0. **Setup**
+
+    ```shell
+    export PYTHONPATH=`pwd`:$PYTHONPATH
+    ```
 
 1. **Training**
 
@@ -67,11 +75,17 @@ Generate depth predications with pre-trained MobileStereoNet referred to VoxForm
     python tools/test.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
     ```
 
-3. **Generating outputs** (for vis.)
+3. **Visualization**
 
-    ```shell
-    python tools/generate_outputs.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
-    ```
+    1. Generating outputs
+
+        ```shell
+        python tools/generate_outputs.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
+        ```
+
+    2. Visualization
+
+        Currently under construction. For a temporary solution, please refer to #2.
 
 ## Results
 
@@ -97,7 +111,7 @@ If you find our paper and code useful for your research, please consider giving 
 
 ## Acknowledgements
 
-This project is based on [MonoScene](https://github.com/astra-vision/MonoScene), [MaskDINO](https://github.com/IDEA-Research/MaskDINO), [TmPL](https://github.com/npurson/tmpl), and [VoxFormer](https://github.com/NVlabs/VoxFormer). Thanks for your wonderful work!
+The development of this project is inspired and informed by [MonoScene](https://github.com/astra-vision/MonoScene), [MaskDINO](https://github.com/IDEA-Research/MaskDINO) and [VoxFormer](https://github.com/NVlabs/VoxFormer). We are thankful to build upon the pioneering work of these projects.
 
 ## License
 

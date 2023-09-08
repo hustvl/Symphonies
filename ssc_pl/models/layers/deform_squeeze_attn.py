@@ -93,7 +93,9 @@ class DeformableSqueezeAttention(nn.Module):
         if squeeze_axis == 0:
             value_ = torch.cat([
                 value_l.reshape(bs, *shape, embed_dims).transpose(2, 3).flatten(1, 3)
-                for value_l, shape in zip(value.split([reduce(lambda x, y: x * y, shape)
-                                                       for shape in spatial_shapes], dim=1),
-                                          spatial_shapes)], dim=1)
+                for value_l, shape in zip(
+                    value.split([reduce(lambda x, y: x * y, shape) for shape in spatial_shapes],
+                                dim=1), spatial_shapes)
+            ],
+                               dim=1)
         return value_, reference_points_, spatial_shapes_, level_start_index

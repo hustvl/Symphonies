@@ -1,20 +1,17 @@
 # @package _global_
 
-solver:
-  optimizer:
-    type: AdamW
-    cfgs:
-      lr: 2.0e-4
-      eps: 1.0e-3  # for fp16
-      weight_decay: 1.0e-4
-    # paramwise_cfg:
-    #   - name: backbone
-    #     lr_mult: 0.1
-  scheduler:
-    type: MultiStepLR
-    cfgs:
-      milestones: [25]
-      gamma: 0.1
+optimizer:
+  type: AdamW
+  lr: 2.0e-4
+  eps: 1.0e-3  # for fp16
+  weight_decay: 1.0e-4
+  # paramwise_cfg:
+  #   - name: backbone
+  #     lr_mult: 0.1
+scheduler:
+  type: MultiStepLR
+  milestones: [25]
+  gamma: 0.1
 
 trainer:
   max_epochs: 30

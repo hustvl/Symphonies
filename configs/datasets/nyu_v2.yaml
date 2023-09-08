@@ -4,26 +4,22 @@ data:
   datasets:
     type: NYUv2
     splits: [train, test]  # replace with kv pairs if specified configs is in need
-    cfgs:  # optional, shared among splits
-      data_root: /home/users/haoyi.jiang/data/nyu/depthbin
-      label_root: /home/users/haoyi.jiang/data/nyu/labels
-      frustum_size: 8
+    data_root: /home/users/haoyi.jiang/data/nyu/depthbin
+    label_root: /home/users/haoyi.jiang/data/nyu/labels
+    frustum_size: 8
   loader:
     batch_size: 1  # batch size per GPU
     num_workers: 4
 
 model:
-  cfgs:
-    channels: 200
-    scene_size: [60, 60, 36]
-    volume_scale: 1
-    num_classes: 12
-    image_shape: [480, 640]
-    voxel_size: 0.08
-    downsample_z: 1
+  channels: 200
+  scene_size: [60, 60, 36]
+  volume_scale: 1
+  num_classes: 12
+  image_shape: [480, 640]
+  voxel_size: 0.08
+  downsample_z: 1
 
-solver:
-  evaluator:
-    type: SSCMetrics
-    cfgs:
-      num_classes: 12
+evaluator:
+  type: SSCMetrics
+  num_classes: 12

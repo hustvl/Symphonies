@@ -4,24 +4,20 @@ data:
   datasets:
     type: SemanticKITTI
     splits: [train, val, test]
-    cfgs:
-      data_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin
-      label_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin/processed/labels
-      depth_root: /home/users/haoyi.jiang/data/kitti_depth
-      frustum_size: 8
+    data_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin
+    label_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin/processed/labels
+    depth_root: /home/users/haoyi.jiang/data/kitti_depth
+    frustum_size: 8
   loader:
     batch_size: 1
     num_workers: 4
 
 model:
-  cfgs:
-    channels: 64
-    scene_size: [256, 256, 32]
-    volume_scale: 2
-    num_classes: 20
+  channels: 64
+  scene_size: [256, 256, 32]
+  volume_scale: 2
+  num_classes: 20
 
-solver:
-  evaluator:
-    type: SSCMetrics
-    cfgs:
-      num_classes: 20
+evaluator:
+  type: SSCMetrics
+  num_classes: 20

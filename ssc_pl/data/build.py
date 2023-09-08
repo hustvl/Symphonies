@@ -1,23 +1,21 @@
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from torch.utils.data import DataLoader
-from omegaconf import DictConfig, OmegaConf
 
+from .. import build_from_configs
 from . import datasets
 
 
 def build_data_loaders(cfg: DictConfig):
-    dls = []
-    for split in cfg.datasets.splits:
-        cfgs = {}
-        if isinstance(cfg.datasets.splits, dict):
-            cfgs = OmegaConf.merge(cfgs, cfg.datasets.splits[split])
-        else:
-            cfgs = OmegaConf.merge(cfgs, {'split': split})
-        shared_cfgs = cfg.datasets.get('cfgs')
-        if isinstance(shared_cfgs, DictConfig):
-            cfgs = OmegaConf.merge(cfgs, shared_cfgs)
+    cfg = cfg.copy()
+    if isinstance(cfg, DictConfig):
+        OmegaConf.set_struct(cfg, False)
+    split_cfgs = cfg.datasets.pop('splits')
+    if isinstance(split_cfgs, ListConfig):
+        split_cfgs = {split: {'split': split} for split in split_cfgs}
 
-        dl = DataLoader(getattr(datasets, cfg.datasets.type)(**cfgs),
-                        **cfg.loader,
-                        shuffle=(split == 'train'))
-        dls.append(dl)
-    return dls, getattr(datasets, cfg.datasets.type).META_INFO
+    return [
+        DataLoader(
+            build_from_configs(datasets, dict(**cfg.datasets, **cfgs)),
+            **cfg.loader,
+            shuffle=split == 'train') for split, cfgs in split_cfgs.items()
+    ], getattr(datasets, cfg.datasets.type).META_INFO

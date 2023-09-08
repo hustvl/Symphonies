@@ -1,36 +1,36 @@
 import torch.nn as nn
 
-from .interface import PLModelInterface
+from ... import build_from_configs
 from .. import encoders
 from ..decoders import SymphoniesDecoder
-from ..losses import (ce_ssc_loss, sem_scal_loss, geo_scal_loss, frustum_proportion_loss)
+from ..losses import ce_ssc_loss, frustum_proportion_loss, geo_scal_loss, sem_scal_loss
 
 
-class Symphonies(PLModelInterface):
+class Symphonies(nn.Module):
 
     def __init__(
-            self,
-            encoder,
-            embed_dims,
-            scene_size,
-            view_scales,
-            volume_scale,
-            num_classes,
-            image_shape=(370, 1220),
-            voxel_size=0.2,
-            downsample_z=2,
-            class_weights=None,
-            criterions=None,
-            **kwargs  # optimizer, scheduler, evaluator
+        self,
+        encoder,
+        embed_dims,
+        scene_size,
+        view_scales,
+        volume_scale,
+        num_classes,
+        image_shape=(370, 1220),
+        voxel_size=0.2,
+        downsample_z=2,
+        class_weights=None,
+        criterions=None,
+        **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.volume_scale = volume_scale
         self.num_classes = num_classes
         self.class_weights = class_weights
         self.criterions = criterions
 
-        self.encoder = getattr(encoders, encoder.type)(
-            embed_dims=embed_dims, scales=view_scales, **encoder.cfgs)
+        self.encoder = build_from_configs(
+            encoders, encoder, embed_dims=embed_dims, scales=view_scales)
         self.decoder = SymphoniesDecoder(
             embed_dims,
             num_classes,
@@ -56,7 +56,7 @@ class Symphonies(PLModelInterface):
                             fov_mask)
         return {'ssc_logits': outs[-1], 'aux_outputs': outs}
 
-    def losses(self, preds, target):
+    def loss(self, preds, target):
         loss_map = {
             'ce_ssc': ce_ssc_loss,
             'sem_scal': sem_scal_loss,

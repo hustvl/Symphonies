@@ -1,43 +1,37 @@
-import sys
-
-sys.path.append('.')  # run from project root
-
 import os
 import os.path as osp
+import pickle
+
 import hydra
 import numpy as np
 import torch
-import pickle
-
-from tqdm import tqdm
 from omegaconf import DictConfig, OmegaConf
+from rich.progress import track
 
-from ssc_pl import build_data_loaders, build_from_configs, models
+from ssc_pl import LitModule, build_data_loaders, pre_build_callbacks
 
 
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
 def main(cfg: DictConfig):
     if os.environ.get('LOCAL_RANK', 0) == 0:
         print(OmegaConf.to_yaml(cfg))
-    cfg, _ = build_from_configs(cfg)
+    cfg, _ = pre_build_callbacks(cfg)
 
     dls, meta_info = build_data_loaders(cfg.data)
     data_loader = dls[1]
     output_dir = osp.join('outputs', cfg.data.datasets.type)
 
     if cfg.model.get('ckpt_path'):
-        model = getattr(models,
-                        cfg.model.type).load_from_checkpoint(cfg.model.ckpt_path, **cfg.model.cfgs,
-                                                             **cfg.solver, **meta_info)
+        model = LitModule.load_from_checkpoint(cfg.model.ckpt_path, **cfg, meta_info=meta_info)
     else:
         import warnings
         warnings.warn('No checkpoint being loaded.')
-        model = getattr(models, cfg.model.type)(**cfg.model.cfgs, **cfg.solver, **meta_info)
+        model = LitModule(**cfg, meta_info=meta_info)
     model.cuda()
     model.eval()
 
     with torch.no_grad():
-        for batch_inputs, targets in tqdm(data_loader):
+        for batch_inputs, targets in track(data_loader):
             for key in batch_inputs:
                 if isinstance(batch_inputs[key], torch.Tensor):
                     batch_inputs[key] = batch_inputs[key].cuda()
