@@ -85,7 +85,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
     2. Visualization
 
-        Currently under construction. For a temporary solution, please refer to #2.
+        Currently under construction. For a temporary solution, please refer to [#2](https://github.com/hustvl/Symphonies/issues/2).
 
 ## Results
 
