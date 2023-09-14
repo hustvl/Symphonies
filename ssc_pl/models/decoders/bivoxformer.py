@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..layers import Downsample, Process, SegmentationHead, Upsample
-from .getr_decoder import flatten_fov_from_voxels, index_fov_back_to_voxels, interpolate_flatten
+from ..utils import flatten_fov_from_voxels, index_fov_back_to_voxels, interpolate_flatten
 
 
 class DynamicUpdateLayer(nn.Module):
