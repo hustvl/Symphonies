@@ -1,5 +1,4 @@
 import copy
-from functools import reduce
 from itertools import product
 
 import torch
@@ -10,7 +9,7 @@ from torch.cuda.amp import autocast
 from ..layers import (ASPP, DeformableSqueezeAttention, DeformableTransformerLayer,
                       LearnableSqueezePositionalEncoding, TransformerLayer, Upsample,
                       nchw_to_nlc, nlc_to_nchw)
-from ..utils import (flatten_fov_from_voxels, generate_grid, index_fov_back_to_voxels,
+from ..utils import (cumprod, flatten_fov_from_voxels, generate_grid, index_fov_back_to_voxels,
                      interpolate_flatten)
 
 
@@ -161,7 +160,7 @@ class SymphoniesDecoder(nn.Module):
             self.ori_scene_shape = copy.copy(scene_shape)
             scene_shape[-1] //= downsample_z
         self.scene_shape = scene_shape
-        self.num_queries = reduce(lambda x, y: x * y, scene_shape)
+        self.num_queries = cumprod(scene_shape)
         self.image_shape = image_shape
         self.voxel_size = voxel_size * project_scale
         self.downsample_z = downsample_z

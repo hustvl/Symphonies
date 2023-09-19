@@ -18,6 +18,8 @@ Haoyang Zhang<sup>2</sup>,
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-from-a-single-1)](https://paperswithcode.com/sota/3d-semantic-scene-completion-from-a-single-1?p=symphonize-3d-semantic-scene-completion-with)
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-from-a-single-2)](https://paperswithcode.com/sota/3d-semantic-scene-completion-from-a-single-2?p=symphonize-3d-semantic-scene-completion-with)
+
 **TL;DR:** Our paper delve into enhancing SSC through the utilization of instance-centric representations. We propose a novel paradigm that integrates ***instance queries*** to facilitate ***instance semantics*** and capture ***global context***. Our approach achieves SOTA results of ***13.02 mIoU & 41.07 IoU*** on the SemanticKITTI *test* benchmark.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL experimentation development built upon [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
@@ -28,7 +30,8 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ## News
 
-***June 28***: We have released the [arXiv](https://arxiv.org/abs/2306.15670) paper of Symphonies!
+* ***Jun 28***: We have released the [arXiv paper](https://arxiv.org/abs/2306.15670) of Symphonies.
+* ***Sep 18***: We have achieved state-of-the-art results on the recently published SSCBench-KITTI-360 benchmark.
 
 ## Preliminary
 
@@ -95,6 +98,12 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
     | [Symphonies](symphonies/configs/config.yaml) | test  | 41.07 | 13.02 | [model](<https://github.com/hustvl/Symphonies/releases/download/v1.0/e28_miou0.1344.ckpt>) |
     | [Symphonies](symphonies/configs/config.yaml) | val   | 41.44 | 13.44 | [log](<https://github.com/hustvl/Symphonies/releases/download/v1.0/log>) |
+
+2. **KITTI-360**
+
+    |                    Method                    | Split |  IoU  | mIoU  |         Download         |
+    | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
+    | [Symphonies](symphonies/configs/config.yaml) | test  | 43.11 | 16.22 | available soon           |
 
 ## Citation
 

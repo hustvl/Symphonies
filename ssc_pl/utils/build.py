@@ -34,7 +34,7 @@ def pre_build_callbacks(cfg: DictConfig):
             monitor='val/mIoU',
             mode='max',
             auto_insert_metric_name=False),
-        callbacks.RichModelSummary(max_depth=3)
+        callbacks.ModelSummary(max_depth=3)
     ]
 
     if cfg.trainer.get('enable_progress_bar', True):

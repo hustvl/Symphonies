@@ -19,6 +19,7 @@ class GeometryTransformer(nn.Module):
         num_layers,
         class_weights=None,
         criterions=None,
+        **kwargs,
     ):
         super().__init__()
         self.view_scales = view_scales

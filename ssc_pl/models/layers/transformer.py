@@ -1,7 +1,7 @@
-from functools import reduce
-
 import torch.nn as nn
 from mmcv.ops import MultiScaleDeformableAttention
+
+from ..utils import cumprod
 
 
 def nlc_to_nchw(x, shape):
@@ -13,7 +13,7 @@ def nlc_to_nchw(x, shape):
         Tensor: The output tensor of shape [N, C, H, W] after conversion.
     """
     B, L, C = x.shape
-    assert L == reduce(lambda x, y: x * y, shape), 'The seq_len does not match H, W'
+    assert L == cumprod(shape), 'The seq_len does not match H, W'
     return x.transpose(1, 2).reshape(B, C, *shape).contiguous()
 
 

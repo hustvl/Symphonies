@@ -1,6 +1,7 @@
 from functools import reduce
 
 import torch
+import torch.nn.functional as F
 
 
 def generate_grid(grid_shape, value, offset=0, normalize=False):

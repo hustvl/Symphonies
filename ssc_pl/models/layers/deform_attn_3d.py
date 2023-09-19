@@ -112,7 +112,7 @@ class MultiScaleDeformableAttention3D(BaseModule):
                  num_heads: int = 8,
                  num_levels: int = 4,
                  num_points: int = 4,
-                 num_dims: int = 2,  # NOTE
+                 num_dims: int = 3,
                  im2col_step: int = 64,
                  dropout: float = 0.1,
                  batch_first: bool = False,

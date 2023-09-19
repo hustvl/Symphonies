@@ -22,6 +22,7 @@ class MonoScene(nn.Module):
         context_prior=True,
         class_weights=None,
         criterions=None,
+        **kwargs,
     ):
         super().__init__()
         self.view_scales = view_scales

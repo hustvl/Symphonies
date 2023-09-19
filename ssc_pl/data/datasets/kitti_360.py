@@ -137,10 +137,8 @@ class KITTI360(Dataset):
             label['CP_mega_matrix'] = CP_mega_matrix
 
         if self.depth_root is not None:
-            depth_path = osp.join(self.depth_root, sequence, frame_id + '.png')
-            depth = Image.open(depth_path)
-            depth = np.asarray(
-                depth, dtype=np.float32)[:self.img_shape[1], :self.img_shape[0]] / 255.0
+            depth_path = osp.join(self.depth_root, sequence, frame_id + '.npy')
+            depth = np.load(depth_path)[:self.img_shape[1], :self.img_shape[0]]
             if flip:
                 depth = np.flip(depth, axis=1).copy()
             data['depth'] = depth

@@ -71,17 +71,19 @@ class VoxelEmbed(nn.Module):
 
 class BVT(MonoScene):
 
-    def __init__(self,
-                 encoder,
-                 channels,
-                 scene_size,
-                 view_scales,
-                 volume_scale,
-                 num_classes,
-                 num_layers=3,
-                 class_weights=None,
-                 criterions=None,
-                 **kwargs):
+    def __init__(
+        self,
+        encoder,
+        channels,
+        scene_size,
+        view_scales,
+        volume_scale,
+        num_classes,
+        num_layers=3,
+        class_weights=None,
+        criterions=None,
+        **kwargs,
+    ):
         super().__init__(
             encoder,
             channels,
