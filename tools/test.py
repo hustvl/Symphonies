@@ -43,11 +43,11 @@ def main(cfg: DictConfig):
     data_loader = dls[-1]
     output_dir = osp.join('outputs', cfg.data.datasets.type)
 
-    if cfg.model.get('ckpt_path'):
-        model = LitModule.load_from_checkpoint(cfg.model.ckpt_path, **cfg, meta_info=meta_info)
+    if cfg.get('ckpt_path'):
+        model = LitModule.load_from_checkpoint(cfg.ckpt_path, **cfg, meta_info=meta_info)
     else:
         import warnings
-        warnings.warn('No checkpoint being loaded.')
+        warnings.warn('\033[31;1m{}\033[0m'.format('No checkpoint path is provided'))
         model = LitModule(**cfg, meta_info=meta_info)
     model.cuda()
     model.eval()

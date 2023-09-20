@@ -53,6 +53,9 @@ class LitModule(L.LightningModule):
     def on_validation_epoch_end(self):
         self._log_metrics(self.test_evaluator, 'val')
 
+    def on_test_epoch_end(self) -> None:
+        self._log_metrics(self.test_evaluator, 'test')
+
     def _log_metrics(self, evaluator, prefix=None):
         metrics = evaluator.compute()
         iou_per_class = metrics.pop('iou_per_class')

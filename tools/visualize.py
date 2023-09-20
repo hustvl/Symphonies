@@ -27,6 +27,13 @@ COLORS = np.array([
     [255, 0, 0, 255],
 ]).astype(np.uint8)
 
+KITTI360_COLORS = np.concatenate((
+    COLORS[0:6],
+    COLORS[8:15],
+    COLORS[16:],
+    np.array([[250, 150, 0, 255], [50, 255, 255, 255]]).astype(np.uint8),
+), 0)
+
 
 def get_grid_coords(dims, resolution):
     """
@@ -40,7 +47,7 @@ def get_grid_coords(dims, resolution):
     # Obtaining the grid with coords...
     xx, yy, zz = np.meshgrid(g_xx[:-1], g_yy[:-1], g_zz[:-1])
     coords_grid = np.array([xx.flatten(), yy.flatten(), zz.flatten()]).T
-    coords_grid = coords_grid.astype(np.float)
+    coords_grid = coords_grid.astype(float)
     coords_grid = (coords_grid * resolution) + resolution / 2
 
     temp = np.copy(coords_grid)
@@ -92,6 +99,7 @@ def draw(
     # Get the voxels outside FOV
     outfov_grid_coords = grid_coords[~fov_mask, :]
     # Draw the camera
+    mlab.figure(bgcolor=(1, 1, 1))
     mlab.triangular_mesh(
         x, y, z, triangles, representation='wireframe', color=(0, 0, 0), line_width=5)
 
@@ -130,25 +138,30 @@ def main(config: DictConfig):
     pred = outputs['pred']
     target = outputs['target']
 
-    if config.data.dataset.type == 'SemanticKITTI':
+    if config.data.datasets.type == 'SemanticKITTI':
         params = dict(
             img_size=(1220, 370),
             f=707.0912,
             voxel_size=0.2,
             d=7,
+            colors=COLORS,
         )
-    elif config.data.dataset.type == 'KITTI360':
+    elif config.data.datasets.type == 'KITTI360':
+        # Otherwise the trained model would output distorted results, due to unreasonably labeling
+        # a large number of voxels as "ignored" in the annotations.
+        pred[target == 255] = 0  #  due to the labeling
         params = dict(
             img_size=(1408, 376),
             f=552.55426,
             voxel_size=0.2,
             d=7,
+            colors=KITTI360_COLORS,
         )
     else:
         raise NotImplementedError
 
     for vol in (pred, target):
-        draw(vol, cam_pose, vox_origin, fov_mask, colors=COLORS, **params)
+        draw(vol, cam_pose, vox_origin, fov_mask, **params)
 
 
 if __name__ == '__main__':

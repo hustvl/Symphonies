@@ -75,7 +75,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 2. **Testing**
 
     ```shell
-    python tools/test.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
+    python tools/test.py [+ckpt_path=...]
     ```
 
 3. **Visualization**
@@ -83,12 +83,14 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     1. Generating outputs
 
         ```shell
-        python tools/generate_outputs.py [--config-name config[.yaml]] [+model.ckpt_path=/path/to/ckpt]
+        python tools/generate_outputs.py [+ckpt_path=...]
         ```
 
     2. Visualization
 
-        Currently under construction. For a temporary solution, please refer to [#2](https://github.com/hustvl/Symphonies/issues/2).
+        ```shell
+        python tools/generate_outputs.py [+output_file=...]
+        ```
 
 ## Results
 
@@ -96,7 +98,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
     |                    Method                    | Split |  IoU  | mIoU  |         Download         |
     | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
-    | [Symphonies](symphonies/configs/config.yaml) | test  | 41.07 | 13.02 | [model](<https://github.com/hustvl/Symphonies/releases/download/v1.0/e28_miou0.1344.ckpt>) |
+    | [Symphonies](symphonies/configs/config.yaml) | test  | 41.07 | 13.02 | [model](<https://github.com/hustvl/Symphonies/releases/download/v1.0/e28_miou0.1344_remapped.ckpt>) |
     | [Symphonies](symphonies/configs/config.yaml) | val   | 41.44 | 13.44 | [log](<https://github.com/hustvl/Symphonies/releases/download/v1.0/log>) |
 
 2. **KITTI-360**

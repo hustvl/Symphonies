@@ -178,10 +178,10 @@ class SymphoniesDecoder(nn.Module):
                                                             embed_dims,
                                                             squeeze_dims=(2, 2, 1))
 
-        image_grid = generate_grid(image_shape, image_shape)
+        image_grid = generate_grid(image_shape)
         image_grid = torch.flip(image_grid, dims=[0]).unsqueeze(0)  # 2(wh), h, w
         self.register_buffer('image_grid', image_grid)
-        voxel_grid = generate_grid(scene_shape, scene_shape, offset=0.5, normalize=True)
+        voxel_grid = generate_grid(scene_shape, offset=0.5, normalize=True)
         self.register_buffer('voxel_grid', voxel_grid)
 
         self.aspp = ASPP(embed_dims, (1, 3))

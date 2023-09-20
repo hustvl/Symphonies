@@ -65,8 +65,8 @@ class MaskDINOEncoder(nn.Module):
             DummyShapeSpec(channels=in_channels[i], stride=in_strides[i])
             for i in range(len(in_channels))
         }
-        warnings.warn(f'The input feature names are set '
-                      f'{input_shape.keys()} with hardcode.')
+        # warnings.warn(f'The input feature names are set '
+        #               f'{input_shape.keys()} with hardcode.')
 
         transformer_input_shape = {
             k: v

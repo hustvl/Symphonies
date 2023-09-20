@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 
 
-def generate_grid(grid_shape, value, offset=0, normalize=False):
+def generate_grid(grid_shape, value=None, offset=0, normalize=False):
     """
     Args:
         grid_shape: The (scaled) shape of grid.
@@ -12,6 +12,8 @@ def generate_grid(grid_shape, value, offset=0, normalize=False):
     Returns:
         Grid coordinates of shape [len(grid_shape), *grid_shape]
     """
+    if value is None:
+        value = grid_shape
     grid = []
     for i, (s, val) in enumerate(zip(grid_shape, value)):
         g = torch.linspace(offset, val - 1 + offset, s, dtype=torch.float)
