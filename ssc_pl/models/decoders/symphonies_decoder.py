@@ -91,7 +91,7 @@ class SymphoniesLayer(nn.Module):
             scene_embed_fov,
             scene_embed_flatten,
             query_pos=scene_pos_fov,
-            ref_pts=ref_vox[:, fov_mask.squeeze()],  # TODO: assert bs == 1
+            ref_pts=torch.flip(ref_vox[:, fov_mask.squeeze()], dims=[-1]),  # TODO: assert bs == 1
             spatial_shapes=scene_shape,
             level_start_index=scene_level_index)
 
@@ -104,7 +104,7 @@ class SymphoniesLayer(nn.Module):
             inst_queries,
             scene_embed_flatten,
             query_pos=inst_pos,
-            ref_pts=ref_3d,
+            ref_pts=torch.flip(ref_3d, dims=[-1]),
             spatial_shapes=scene_shape,
             level_start_index=scene_level_index)
         inst_queries = self.query_self_attn(inst_queries, query_pos=inst_pos)
@@ -230,6 +230,7 @@ class SymphoniesDecoder(nn.Module):
                 pred_insts['pred_pts'], vol_pts).unsqueeze(2)
         ref_pix = (torch.flip(projected_pix, dims=[-1]) + 0.5) / torch.tensor(
             self.image_shape).to(projected_pix)
+        ref_pix = torch.flip(ref_pix, dims=[-1])
         ref_vox = nchw_to_nlc(self.voxel_grid.unsqueeze(0)).unsqueeze(2)
 
         scene_embed = self.scene_embed.weight.repeat(bs, 1, 1)

@@ -1,9 +1,10 @@
-from functools import reduce
 from typing import Optional
 
 import torch
 import torch.nn as nn
 from mmcv.ops import MultiScaleDeformableAttention
+
+from ..utils import cumprod
 
 
 class DeformableSqueezeAttention(nn.Module):
@@ -62,7 +63,8 @@ class DeformableSqueezeAttention(nn.Module):
         """
         for squeeze_axis, attn in zip(self.squeeze_axes, self.attns):
             value_, reference_points_, spatial_shapes_, level_start_index_ = self.squeeze_value_by_axis(
-                value, reference_points, spatial_shapes, squeeze_axis)
+                value, reference_points, spatial_shapes,
+                reference_points.size(-1) - squeeze_axis - 1)
             query = attn(
                 query,
                 value=value_,
@@ -77,25 +79,28 @@ class DeformableSqueezeAttention(nn.Module):
         bs, _, embed_dims = value.shape
 
         spatial_shapes_ = spatial_shapes.clone()
-        spatial_shapes_[:, squeeze_axis] *= spatial_shapes_[:, -1]
-        spatial_shapes_ = spatial_shapes_[:, :2]
+        spatial_shapes_[:, squeeze_axis] *= spatial_shapes_[:, 0]
+        spatial_shapes_ = spatial_shapes_[:, 1:]
 
         reference_points_ = reference_points.clone()
-        reference_points_[..., squeeze_axis] += ((reference_points_[..., -1] - 0.5) /
+        reference_points_[..., squeeze_axis] += ((reference_points_[..., 0] - 0.5) /
                                                  spatial_shapes[:, squeeze_axis])
-        reference_points_ = reference_points_[..., :2]
+        reference_points_ = reference_points_[..., 1:]
         # assert (reference_points_[..., squeeze_axis].max() <
         #         1) and (reference_points_[..., squeeze_axis].min() > 0)
 
         level_start_index = torch.cat((spatial_shapes_.new_zeros(
             (1, )), spatial_shapes_.prod(1).cumsum(0)[:-1]))
 
-        if squeeze_axis == 0:
+        if squeeze_axis in (1, 2):
             value_ = torch.cat([
+                value_l.reshape(bs, *shape, embed_dims).flatten(2) if squeeze_axis == 1 else
                 value_l.reshape(bs, *shape, embed_dims).transpose(2, 3).flatten(1, 3)
                 for value_l, shape in zip(
-                    value.split([reduce(lambda x, y: x * y, shape) for shape in spatial_shapes],
-                                dim=1), spatial_shapes)
+                    value.split([cumprod(shape)
+                                 for shape in spatial_shapes], dim=1), spatial_shapes)
             ],
                                dim=1)
+        else:
+            raise NotImplementedError
         return value_, reference_points_, spatial_shapes_, level_start_index

@@ -16,12 +16,13 @@ class Symphonies(nn.Module):
         view_scales,
         volume_scale,
         num_classes,
+        num_layers=3,
         image_shape=(370, 1220),
         voxel_size=0.2,
         downsample_z=2,
         class_weights=None,
         criterions=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self.volume_scale = volume_scale
@@ -34,7 +35,7 @@ class Symphonies(nn.Module):
         self.decoder = SymphoniesDecoder(
             embed_dims,
             num_classes,
-            num_layers=3,
+            num_layers=num_layers,
             num_levels=len(view_scales),
             scene_shape=scene_size,
             project_scale=volume_scale,
