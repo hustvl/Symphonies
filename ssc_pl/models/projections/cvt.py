@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..layers import TransformerLayer, nchw_to_nlc
-from ..utils import generate_grid
+from ..layers import TransformerLayer
+from ..utils import generate_grid, nchw_to_nlc
 
 
 class ProjectionLayer(nn.Module):

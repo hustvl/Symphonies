@@ -7,30 +7,10 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast
 
 from ..layers import (ASPP, DeformableSqueezeAttention, DeformableTransformerLayer,
-                      LearnableSqueezePositionalEncoding, TransformerLayer, Upsample,
-                      nchw_to_nlc, nlc_to_nchw)
-from ..utils import (cumprod, flatten_fov_from_voxels, generate_grid, index_fov_back_to_voxels,
-                     interpolate_flatten)
-
-
-def flatten_multi_scale_feats(feats):
-    feat_flatten = torch.cat([nchw_to_nlc(feat) for feat in feats], dim=1)
-    shapes = torch.stack([torch.tensor(feat.shape[2:]) for feat in feats]).to(feat_flatten.device)
-    return feat_flatten, shapes
-
-
-def get_level_start_index(shapes):
-    return torch.cat((shapes.new_zeros((1, )), shapes.prod(1).cumsum(0)[:-1]))
-
-
-def pix2vox(pix_coords, depth, K, E, voxel_origin, voxel_size, offset=0.5, downsample_z=1):
-    p_x = torch.cat([pix_coords * depth, depth], dim=1)  # bs, 3, h, w
-    p_c = K.inverse() @ p_x.flatten(2)
-    p_w = E.inverse() @ F.pad(p_c, (0, 0, 0, 1), value=1)
-    p_v = ((p_w[:, :-1].transpose(1, 2) - voxel_origin.unsqueeze(1)) / voxel_size - offset)
-    if downsample_z != 1:
-        p_v[..., -1] /= downsample_z
-    return p_v.long()
+                      LearnableSqueezePositionalEncoding, TransformerLayer, Upsample)
+from ..utils import (cumprod, flatten_fov_from_voxels, flatten_multi_scale_feats, generate_grid,
+                     get_level_start_index, index_fov_back_to_voxels, interpolate_flatten,
+                     nchw_to_nlc, nlc_to_nchw, pix2vox)
 
 
 class SymphoniesLayer(nn.Module):
@@ -281,5 +261,5 @@ class SymphoniesDecoder(nn.Module):
         pred_pts = pred_pts[..., 1] * self.image_shape[1] + pred_pts[..., 0]
         assert pred_pts.size(0) == 1
         ref_pts = vol_pts[:, pred_pts.squeeze()]
-        ref_pts = ref_pts / torch.tensor(self.scene_shape).to(pred_pts)
+        ref_pts = ref_pts / (torch.tensor(self.scene_shape) - 1).to(pred_pts)
         return ref_pts.clamp(0, 1)

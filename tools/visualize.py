@@ -1,8 +1,10 @@
+import os
 import pickle
 
 import hydra
 import numpy as np
 from omegaconf import DictConfig
+from rich.progress import track
 from mayavi import mlab
 
 COLORS = np.array([
@@ -67,6 +69,7 @@ def draw(
     voxel_size=0.2,
     d=7,  # 7m - determine the size of the mesh representing the camera
     colors=None,
+    save=False,
 ):
     # Compute the coordinates of the mesh representing camera
     x = d * img_size[0] / (2 * f)
@@ -101,7 +104,7 @@ def draw(
     # Draw the camera
     mlab.figure(bgcolor=(1, 1, 1))
     mlab.triangular_mesh(
-        x, y, z, triangles, representation='wireframe', color=(0, 0, 0), line_width=5)
+        x, y, z, triangles, representation='wireframe', color=(0, 0, 0), line_width=10)
 
     outfov_colors = colors.copy()
     outfov_colors[:, :3] = outfov_colors[:, :3] // 3 * 2
@@ -124,44 +127,56 @@ def draw(
         plt_plot.glyph.scale_mode = 'scale_by_vector'
         plt_plot.module_manager.scalar_lut_manager.lut.table = colors if i == 0 else outfov_colors
 
-    mlab.show()
+    plt_plot.scene.camera.zoom(1.3)
+    if save:
+        mlab.savefig(save, size=(448, 448))
+        mlab.close()
+    else:
+        mlab.show()
 
 
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
 def main(config: DictConfig):
-    with open(config.output_file, 'rb') as f:
-        outputs = pickle.load(f)
+    files = ([os.path.join(config.path, f)
+              for f in os.listdir(config.path)] if os.path.isdir(config.path) else [config.path])
 
-    cam_pose = outputs['cam_pose']
-    vox_origin = np.array([0, -25.6, -2])
-    fov_mask = outputs['fov_mask_1']
-    pred = outputs['pred']
-    target = outputs['target']
+    for file in track(files):
+        with open(file, 'rb') as f:
+            outputs = pickle.load(f)
 
-    if config.data.datasets.type == 'SemanticKITTI':
-        params = dict(
-            img_size=(1220, 370),
-            f=707.0912,
-            voxel_size=0.2,
-            d=7,
-            colors=COLORS,
-        )
-    elif config.data.datasets.type == 'KITTI360':
-        # Otherwise the trained model would output distorted results, due to unreasonably labeling
-        # a large number of voxels as "ignored" in the annotations.
-        pred[target == 255] = 0  #  due to the labeling
-        params = dict(
-            img_size=(1408, 376),
-            f=552.55426,
-            voxel_size=0.2,
-            d=7,
-            colors=KITTI360_COLORS,
-        )
-    else:
-        raise NotImplementedError
+        cam_pose = outputs['cam_pose'] if 'cam_pose' in outputs else outputs[
+            'T_velo_2_cam']  # compatible with MonoScene
+        vox_origin = np.array([0, -25.6, -2])
+        fov_mask = outputs['fov_mask_1']
+        pred = outputs['pred'] if 'pred' in outputs else outputs['y_pred']
+        target = outputs['target']
 
-    for vol in (pred, target):
-        draw(vol, cam_pose, vox_origin, fov_mask, **params)
+        if config.data.datasets.type == 'SemanticKITTI':
+            params = dict(
+                img_size=(1220, 370),
+                f=707.0912,
+                voxel_size=0.2,
+                d=7,
+                colors=COLORS,
+            )
+        elif config.data.datasets.type == 'KITTI360':
+            # Otherwise the trained model would output distorted results, due to unreasonably labeling
+            # a large number of voxels as "ignored" in the annotations.
+            pred[target == 255] = 0
+            params = dict(
+                img_size=(1408, 376),
+                f=552.55426,
+                voxel_size=0.2,
+                d=7,
+                colors=KITTI360_COLORS,
+            )
+        else:
+            raise NotImplementedError
+
+        file_name = file.split(os.sep)[-1].split(".")[0]
+        for i, vol in enumerate((pred, target)):
+            draw(vol, cam_pose, vox_origin, fov_mask, **params,
+                 save=f'outputs/figures/{file_name}_{"gt" if i else "pred"}.png')
 
 
 if __name__ == '__main__':
