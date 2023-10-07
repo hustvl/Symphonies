@@ -18,9 +18,9 @@ Haoyang Zhang<sup>2</sup>,
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-from-a-single-1)](https://paperswithcode.com/sota/3d-semantic-scene-completion-from-a-single-1?p=symphonize-3d-semantic-scene-completion-with)
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-from-a-single-2)](https://paperswithcode.com/sota/3d-semantic-scene-completion-from-a-single-2?p=symphonize-3d-semantic-scene-completion-with)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/symphonize-3d-semantic-scene-completion-with/3d-semantic-scene-completion-on-kitti-360)](https://paperswithcode.com/sota/3d-semantic-scene-completion-on-kitti-360?p=symphonize-3d-semantic-scene-completion-with)
 
-**TL;DR:** Our paper delve into enhancing SSC through the utilization of instance-centric representations. We propose a novel paradigm that integrates ***instance queries*** to facilitate ***instance semantics*** and capture ***global context***. Our approach achieves SOTA results of ***13.02 mIoU & 41.07 IoU*** on the SemanticKITTI *test* benchmark.
+**TL;DR:** Our paper delve into enhancing SSC through the utilization of instance-centric representations. We propose a novel paradigm that integrates ***instance queries*** to facilitate ***instance semantics*** and capture ***global context***. Our approach achieves SOTA results of ***15.04 & 18.58 mIoU*** on the SemanticKITTI & KITTI-360, respectively.
 
 This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a template for rapid & flexible DL experimentation development built upon [Lightning](https://lightning.ai/) & [Hydra](https://hydra.cc/).
 
@@ -30,8 +30,8 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ## News
 
-* ***Jun 28***: We have released the [arXiv paper](https://arxiv.org/abs/2306.15670) of Symphonies.
 * ***Sep 18***: We have achieved state-of-the-art results on the recently published SSCBench-KITTI-360 benchmark.
+* ***Jun 28***: We have released the [arXiv paper](https://arxiv.org/abs/2306.15670) of Symphonies.
 
 ## Preliminary
 
@@ -47,9 +47,15 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ### Prepare Dataset
 
+#### SemanticKITTI
+
 1. Download the RGB images, calibration files, and preprocess the labels, referring to the documentation of [VoxFormer](https://github.com/NVlabs/VoxFormer/blob/main/docs/prepare_dataset.md) or [MonoScene](https://github.com/astra-vision/MonoScene#semantickitti).
 
 2. Generate depth predications with pre-trained MobileStereoNet referring to VoxFormer https://github.com/NVlabs/VoxFormer/tree/main/preprocess#3-image-to-depth.
+
+#### SSCBench-KITTI-360
+
+1. Refer to https://github.com/ai4ce/SSCBench/tree/main/dataset/KITTI-360.
 
 ## Usage
 
@@ -89,7 +95,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     2. Visualization
 
         ```shell
-        python tools/generate_outputs.py [+output_file=...]
+        python tools/generate_outputs.py [+path=...]
         ```
 
 ## Results
@@ -98,14 +104,14 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
     |                    Method                    | Split |  IoU  | mIoU  |         Download         |
     | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
-    | [Symphonies](symphonies/configs/config.yaml) | test  | 41.07 | 13.02 | [model](<https://github.com/hustvl/Symphonies/releases/download/v1.0/e28_miou0.1344_remapped.ckpt>) |
-    | [Symphonies](symphonies/configs/config.yaml) | val   | 41.44 | 13.44 | [log](<https://github.com/hustvl/Symphonies/releases/download/v1.0/log>) |
+    | [Symphonies](symphonies/configs/config.yaml) | val   | 41.92 | 14.89 | [log](https://github.com/hustvl/Symphonies/releases/download/v1.0/semantic_kitti.log) / [model](https://github.com/hustvl/Symphonies/releases/download/v1.0/semantic_kitti_e25_miou0.1489.ckpt) |
+    | [Symphonies](symphonies/configs/config.yaml) | test  | 42.19 | 15.04 | [output](https://github.com/hustvl/Symphonies/releases/download/v1.0/scoring_output.txt) |
 
 2. **KITTI-360**
 
     |                    Method                    | Split |  IoU  | mIoU  |         Download         |
     | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
-    | [Symphonies](symphonies/configs/config.yaml) | test  | 43.11 | 16.22 | available soon           |
+    | [Symphonies](symphonies/configs/config.yaml) | test  | 44.12 | 18.58 | [log](https://github.com/hustvl/Symphonies/releases/download/v1.0/kitti_360.log) / [model](https://github.com/hustvl/Symphonies/releases/download/v1.0/kitti_360_e27_miou0.1858.ckpt) |
 
 ## Citation
 

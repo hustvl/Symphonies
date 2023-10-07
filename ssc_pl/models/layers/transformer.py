@@ -1,32 +1,6 @@
 import torch.nn as nn
 from mmcv.ops import MultiScaleDeformableAttention
 
-from ..utils import cumprod
-
-
-def nlc_to_nchw(x, shape):
-    """Convert [N, L, C] shape tensor to [N, C, H, W] shape tensor.
-    Args:
-        x (Tensor): The input tensor of shape [N, L, C] before conversion.
-        shape (Sequence[int]): The height and width of output feature map.
-    Returns:
-        Tensor: The output tensor of shape [N, C, H, W] after conversion.
-    """
-    B, L, C = x.shape
-    assert L == cumprod(shape), 'The seq_len does not match H, W'
-    return x.transpose(1, 2).reshape(B, C, *shape).contiguous()
-
-
-def nchw_to_nlc(x):
-    """Flatten [N, C, H, W] shape tensor to [N, L, C] shape tensor.
-    Args:
-        x (Tensor): The input tensor of shape [N, C, H, W] before conversion.
-    Returns:
-        Tensor: The output tensor of shape [N, L, C] after conversion.
-        tuple: The [H, W] shape.
-    """
-    return x.flatten(2).transpose(1, 2).contiguous()
-
 
 class TransformerLayer(nn.Module):
 

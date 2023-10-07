@@ -79,8 +79,8 @@ class DeformableSqueezeAttention(nn.Module):
         bs, _, embed_dims = value.shape
 
         spatial_shapes_ = spatial_shapes.clone()
-        spatial_shapes_[:, squeeze_axis] *= spatial_shapes_[:, 0]
-        spatial_shapes_ = spatial_shapes_[:, 1:]
+        spatial_shapes_[:, reference_points.size(-1) - squeeze_axis - 1] *= spatial_shapes_[:, -1]
+        spatial_shapes_ = spatial_shapes_[:, :-1]
 
         reference_points_ = reference_points.clone()
         reference_points_[..., squeeze_axis] += ((reference_points_[..., 0] - 0.5) /

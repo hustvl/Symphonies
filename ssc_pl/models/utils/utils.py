@@ -58,8 +58,60 @@ def interpolate_flatten(x, src_shape, dst_shape, mode='nearest'):
         bs, n, c = *x.shape, 1
     assert cumprod(src_shape) == n
     x = F.interpolate(
-        x.reshape(bs, c, *src_shape).float(), dst_shape,
-        mode=mode).flatten(2).transpose(1, 2).to(x.dtype)
+        x.reshape(bs, c, *src_shape).float(), dst_shape, mode=mode,
+        align_corners=False).flatten(2).transpose(1, 2).to(x.dtype)
     if c == 1:
         x = x.squeeze(2)
     return x
+
+
+def flatten_multi_scale_feats(feats):
+    feat_flatten = torch.cat([nchw_to_nlc(feat) for feat in feats], dim=1)
+    shapes = torch.stack([torch.tensor(feat.shape[2:]) for feat in feats]).to(feat_flatten.device)
+    return feat_flatten, shapes
+
+
+def get_level_start_index(shapes):
+    return torch.cat((shapes.new_zeros((1, )), shapes.prod(1).cumsum(0)[:-1]))
+
+
+def nlc_to_nchw(x, shape):
+    """Convert [N, L, C] shape tensor to [N, C, H, W] shape tensor.
+    Args:
+        x (Tensor): The input tensor of shape [N, L, C] before conversion.
+        shape (Sequence[int]): The height and width of output feature map.
+    Returns:
+        Tensor: The output tensor of shape [N, C, H, W] after conversion.
+    """
+    B, L, C = x.shape
+    assert L == cumprod(shape), 'The seq_len does not match H, W'
+    return x.transpose(1, 2).reshape(B, C, *shape).contiguous()
+
+
+def nchw_to_nlc(x):
+    """Flatten [N, C, H, W] shape tensor to [N, L, C] shape tensor.
+    Args:
+        x (Tensor): The input tensor of shape [N, C, H, W] before conversion.
+    Returns:
+        Tensor: The output tensor of shape [N, L, C] after conversion.
+        tuple: The [H, W] shape.
+    """
+    return x.flatten(2).transpose(1, 2).contiguous()
+
+
+def pix2vox(pix_coords, depth, K, E, voxel_origin, voxel_size, offset=0.5, downsample_z=1):
+    p_x = torch.cat([pix_coords * depth, depth], dim=1)  # bs, 3, h, w
+    p_c = K.inverse() @ p_x.flatten(2)
+    p_w = E.inverse() @ F.pad(p_c, (0, 0, 0, 1), value=1)
+    p_v = (p_w[:, :-1].transpose(1, 2) - voxel_origin.unsqueeze(1)) / voxel_size - offset
+    if downsample_z != 1:
+        p_v[..., -1] /= downsample_z
+    return p_v.long()
+
+
+def vox2pix(voxel_pts, K, E, voxel_origin, scene_shape, image_shape, voxel_size):
+    p_v = voxel_pts.squeeze(2) * torch.tensor(scene_shape).to(voxel_pts) * voxel_size + voxel_origin
+    p_c = E @ F.pad(p_v.transpose(1, 2), (0, 0, 0, 1), value=1)
+    p_x = (K @ p_c[:, :-1]) / p_c[:, 2]
+    p_x = p_x[:, :-1].transpose(1, 2) / (torch.tensor(image_shape[::-1]).to(p_x) - 1)
+    return p_x.clamp(0, 1)
