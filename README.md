@@ -111,7 +111,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
     |                    Method                    | Split |  IoU  | mIoU  |         Download         |
     | :------------------------------------------: | :---: | :---: | :---: | :----------------------: |
-    | [Symphonies](symphonies/configs/config.yaml) | test  | 44.12 | 18.58 | [log](https://github.com/hustvl/Symphonies/releases/download/v1.0/kitti_360.log) / [model](https://github.com/hustvl/Symphonies/releases/download/v1.0/kitti_360_e27_miou0.1858.ckpt) |
+    | [Symphonies](symphonies/configs/config.yaml) | test  | 44.12 | 18.58 | [log](https://github.com/hustvl/Symphonies/releases/download/v1.0/kitti_360.log) / [model](https://github.com/hustvl/Symphonies/releases/download/v1.0/kitti_360_e26_miou0.1836.ckpt) |
 
 ## Citation
 

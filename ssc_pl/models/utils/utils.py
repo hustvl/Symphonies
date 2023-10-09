@@ -115,3 +115,21 @@ def vox2pix(voxel_pts, K, E, voxel_origin, scene_shape, image_shape, voxel_size)
     p_x = (K @ p_c[:, :-1]) / p_c[:, 2]
     p_x = p_x[:, :-1].transpose(1, 2) / (torch.tensor(image_shape[::-1]).to(p_x) - 1)
     return p_x.clamp(0, 1)
+
+
+def volume_rendering(volume, K, E, voxel_origin, voxel_size, image_shape, depth_args=(2, 50, 0.5)):
+    pix_coords = generate_grid(image_shape).to(volume)  # (2, H, W)
+    pix_coords = torch.flip(pix_coords, dims=[0])
+    depth = torch.arange(*depth_args).to(pix_coords)  # (D,)
+    p_x = F.pad(pix_coords, (0, 0, 0, 0, 0, 1), value=1)
+    p_x = p_x.unsqueeze(-1).repeat(1, 1, 1, depth.size(0))  # (3, H, W, D)
+    d = depth.reshape(1, 1, 1, -1)
+    p_x = p_x * d
+
+    p_c = K.inverse() @ p_x.flatten(1)
+    p_w = E.inverse() @ F.pad(p_c, (0, 0, 0, 1), value=1)
+    p_v = (p_w[:, :-1].transpose(1, 2) - voxel_origin.unsqueeze(1)) / voxel_size - 0.5
+    p_v = p_v.reshape(1, *image_shape, depth.size(0), -1)  # (1, H, W, D, 3)
+    p_v = p_v / (torch.tensor(volume.shape[-3:]) - 1).to(p_v)
+
+    return F.grid_sample(volume, torch.flip(p_v, dims=[-1]) * 2 - 1, padding_mode='border'), d

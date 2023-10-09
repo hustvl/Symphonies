@@ -129,7 +129,7 @@ def draw(
 
     plt_plot.scene.camera.zoom(1.3)
     if save:
-        mlab.savefig(save, size=(448, 448))
+        mlab.savefig(save, size=(224, 224))
         mlab.close()
     else:
         mlab.show()
