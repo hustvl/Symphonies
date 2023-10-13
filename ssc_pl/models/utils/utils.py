@@ -18,7 +18,7 @@ def generate_grid(grid_shape, value=None, offset=0, normalize=False):
     for i, (s, val) in enumerate(zip(grid_shape, value)):
         g = torch.linspace(offset, val - 1 + offset, s, dtype=torch.float)
         if normalize:
-            g /= s
+            g /= s - 1
         shape_ = [1 for _ in grid_shape]
         shape_[i] = s
         g = g.reshape(1, *shape_).expand(1, *grid_shape)
@@ -99,37 +99,88 @@ def nchw_to_nlc(x):
     return x.flatten(2).transpose(1, 2).contiguous()
 
 
-def pix2vox(pix_coords, depth, K, E, voxel_origin, voxel_size, offset=0.5, downsample_z=1):
-    p_x = torch.cat([pix_coords * depth, depth], dim=1)  # bs, 3, h, w
-    p_c = K.inverse() @ p_x.flatten(2)
-    p_w = E.inverse() @ F.pad(p_c, (0, 0, 0, 1), value=1)
-    p_v = (p_w[:, :-1].transpose(1, 2) - voxel_origin.unsqueeze(1)) / voxel_size - offset
+def pix2cam(p_pix, depth, K):
+    p_pix = torch.cat([p_pix * depth, depth], dim=1)  # bs, 3, h, w
+    return K.inverse() @ p_pix.flatten(2)
+
+
+def cam2vox(p_cam, E, vox_origin, vox_size, offset=0.5):
+    p_wld = E.inverse() @ F.pad(p_cam, (0, 0, 0, 1), value=1)
+    p_vox = (p_wld[:, :-1].transpose(1, 2) - vox_origin.unsqueeze(1)) / vox_size - offset
+    return p_vox
+
+
+def pix2vox(p_pix, depth, K, E, vox_origin, vox_size, offset=0.5, downsample_z=1):
+    p_cam = pix2cam(p_pix, depth, K)
+    p_vox = cam2vox(p_cam, E, vox_origin, vox_size, offset)
     if downsample_z != 1:
-        p_v[..., -1] /= downsample_z
-    return p_v.long()
+        p_vox[..., -1] /= downsample_z
+    return p_vox
 
 
-def vox2pix(voxel_pts, K, E, voxel_origin, scene_shape, image_shape, voxel_size):
-    p_v = voxel_pts.squeeze(2) * torch.tensor(scene_shape).to(voxel_pts) * voxel_size + voxel_origin
-    p_c = E @ F.pad(p_v.transpose(1, 2), (0, 0, 0, 1), value=1)
-    p_x = (K @ p_c[:, :-1]) / p_c[:, 2]
-    p_x = p_x[:, :-1].transpose(1, 2) / (torch.tensor(image_shape[::-1]).to(p_x) - 1)
-    return p_x.clamp(0, 1)
+def cam2pix(p_cam, K, image_shape):
+    """
+    Return:
+        p_pix: (bs, H*W, 2)
+    """
+    assert p_cam.size(1) == 3
+    assert K.size(-1) in (3, 4)
+    if K.size(-1) == 4:
+        p_cam = F.pad(p_cam, (0, 0, 0, 1), value=1)
+    p_pix = K @ p_cam / p_cam[:, 2]  # .clamp(min=1e-3)
+    p_pix = p_pix[:, :2].transpose(1, 2) / (torch.tensor(image_shape[::-1]).to(p_pix) - 1)
+    return p_pix
 
 
-def volume_rendering(volume, K, E, voxel_origin, voxel_size, image_shape, depth_args=(2, 50, 0.5)):
-    pix_coords = generate_grid(image_shape).to(volume)  # (2, H, W)
-    pix_coords = torch.flip(pix_coords, dims=[0])
-    depth = torch.arange(*depth_args).to(pix_coords)  # (D,)
-    p_x = F.pad(pix_coords, (0, 0, 0, 0, 0, 1), value=1)
-    p_x = p_x.unsqueeze(-1).repeat(1, 1, 1, depth.size(0))  # (3, H, W, D)
-    d = depth.reshape(1, 1, 1, -1)
-    p_x = p_x * d
+def vox2pix(p_vox, K, E, vox_origin, vox_size, image_shape, scene_shape):
+    p_vox = p_vox.squeeze(2) * torch.tensor(scene_shape).to(p_vox) * vox_size + vox_origin
+    p_cam = E @ F.pad(p_vox.transpose(1, 2), (0, 0, 0, 1), value=1)
+    return cam2pix(p_cam[:, :-1], K, image_shape).clamp(0, 1)
 
-    p_c = K.inverse() @ p_x.flatten(1)
-    p_w = E.inverse() @ F.pad(p_c, (0, 0, 0, 1), value=1)
-    p_v = (p_w[:, :-1].transpose(1, 2) - voxel_origin.unsqueeze(1)) / voxel_size - 0.5
-    p_v = p_v.reshape(1, *image_shape, depth.size(0), -1)  # (1, H, W, D, 3)
-    p_v = p_v / (torch.tensor(volume.shape[-3:]) - 1).to(p_v)
 
-    return F.grid_sample(volume, torch.flip(p_v, dims=[-1]) * 2 - 1, padding_mode='border'), d
+def volume_rendering(
+        volume,
+        image_grid,
+        K,
+        E,
+        vox_origin,
+        vox_size,
+        image_shape,
+        depth_args=(2, 50, 1),
+):
+    depth = torch.arange(*depth_args).to(image_grid)  # (D,)
+    p_pix = F.pad(image_grid, (0, 0, 0, 0, 0, 1), value=1)  # (B, 3, H, W)
+    p_pix = p_pix.unsqueeze(-1) * depth.reshape(1, 1, 1, 1, -1)
+
+    p_cam = K.inverse() @ p_pix.flatten(2)
+    p_vox = cam2vox(p_cam, E, vox_origin, vox_size)
+    p_vox = p_vox.reshape(1, *image_shape, depth.size(0), -1)  # (B, H, W, D, 3)
+    p_vox = p_vox / (torch.tensor(volume.shape[-3:]) - 1).to(p_vox)
+
+    return F.grid_sample(volume, torch.flip(p_vox, dims=[-1]) * 2 - 1, padding_mode='zeros'), depth
+
+
+def render_depth(volume, image_grid, K, E, vox_origin, vox_size, image_shape, depth_args):
+    sigmas, z = volume_rendering(volume, image_grid, K, E, vox_origin, vox_size, image_shape,
+                                 depth_args)
+    beta = z[1] - z[0]
+    T = torch.exp(-torch.cumsum(F.pad(sigmas[..., :-1], (1, 0)) * beta, dim=-1))
+    alpha = 1 - torch.exp(-sigmas * beta)
+    depth_map = torch.sum(T * alpha * z, dim=-1).reshape(1, *image_shape)
+    depth_map = depth_map  # + d[..., 0]
+    return depth_map
+
+
+def inverse_warp(img, image_grid, depth, pose, K, padding_mode='zeros'):
+    """
+    img: (B, 3, H, W)
+    image_grid: (B, 2, H, W)
+    depth: (B, H, W)
+    pose: (B, 3, 4)
+    """
+    p_cam = pix2cam(image_grid, depth.unsqueeze(1), K)
+    p_pix = cam2pix(p_cam, K @ pose, img.shape[2:])
+    p_pix = p_pix.reshape(*depth.shape, 2) * 2 - 1
+    projected_img = F.grid_sample(img, p_pix, padding_mode=padding_mode)
+    valid_mask = p_pix.abs().max(dim=-1)[0] <= 1
+    return projected_img, valid_mask

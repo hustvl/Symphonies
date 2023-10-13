@@ -1,14 +1,14 @@
-import os.path as osp
 import glob
+import os.path as osp
 import random
+
 import numpy as np
 import torch
-
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms as T
 
-from ...utils.helper import vox2pix, compute_local_frustums, compute_CP_mega_matrix
+from ...utils.helper import compute_CP_mega_matrix, compute_local_frustums, vox2pix
 
 SPLITS = {
     'train':

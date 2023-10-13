@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import torch
 from omegaconf import DictConfig, OmegaConf
 from rich.progress import track
-from ssc_pl import LitModule, build_data_loaders, generate_grid, pre_build_callbacks, render_depth
+from ssc_pl import (LitModule, build_data_loaders, generate_grid, inverse_warp, pre_build_callbacks,
+                    render_depth)
 
 
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
@@ -27,6 +28,7 @@ def main(cfg: DictConfig):
     model.cuda()
     model.eval()
     image_grid = None
+    prev = None
 
     with torch.no_grad():
         for batch_inputs, targets in track(data_loader):
@@ -39,6 +41,7 @@ def main(cfg: DictConfig):
             target = targets['target'].cuda()
             K = batch_inputs['cam_K']  # (B, 3, 3)
             E = batch_inputs['cam_pose']  # (B, 4, 4)
+            pose = batch_inputs['pose']
             vox_origin = batch_inputs['voxel_origin']  # (B, 3)
             vox_size = 0.2
             image_shape = batch_inputs['img'].shape[-2:]
@@ -52,9 +55,25 @@ def main(cfg: DictConfig):
             depth_map = render_depth(density, image_grid, K, E, vox_origin, vox_size, image_shape,
                                      (2, 50, 0.5))
 
-            draw_depth(
-                torch.cat([depth_map, batch_inputs['depth']], dim=1),
-                f"depth_{batch_inputs['sequence'][0]}_{batch_inputs['frame_id'][0]}.png")
+            if prev:
+                pose_mat = (prev['pose'].inverse() @ pose)[:, :3]
+                projected_img, mask = inverse_warp(prev['img'], image_grid, depth_map, pose_mat, K)
+
+                projected_img = projected_img.flatten(2).squeeze()
+                projected_img[:, ~mask.flatten()] = projected_img.min()
+                projected_img = projected_img.reshape_as(prev['img'])
+
+                fig = torch.cat([prev['img'], projected_img, batch_inputs['img']],
+                                dim=2).permute(0, 2, 3, 1).squeeze().cpu().numpy()
+                fig = fig - fig.min()
+                fig = fig / fig.max()
+
+                plt.imsave(
+                    f"warped_{batch_inputs['sequence'][0]}_{batch_inputs['frame_id'][0]}.png", fig)
+            # draw_depth(
+            #     torch.cat([depth_map, batch_inputs['depth']], dim=1),
+            #     f"depth_{batch_inputs['sequence'][0]}_{batch_inputs['frame_id'][0]}.png")
+            prev = dict(img=batch_inputs['img'], pose=pose)
 
 
 def draw_depth(depth_map, path):

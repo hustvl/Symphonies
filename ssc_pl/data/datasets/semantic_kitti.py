@@ -1,14 +1,14 @@
-import os.path as osp
 import glob
+import os.path as osp
 import random
+
 import numpy as np
 import torch
-
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms as T
 
-from ...utils.helper import vox2pix, compute_local_frustums, compute_CP_mega_matrix
+from ...utils.helper import compute_CP_mega_matrix, compute_local_frustums, vox2pix
 
 SPLITS = {
     'train': ('00', '01', '02', '03', '04', '05', '06', '07', '09', '10'),
@@ -45,6 +45,7 @@ class SemanticKITTI(Dataset):
         frustum_size=4,
         context_prior=False,
         flip=True,
+        load_pose=False,
     ):
         super().__init__()
         self.data_root = data_root
@@ -58,6 +59,7 @@ class SemanticKITTI(Dataset):
         self.output_scale = int(self.project_scale / 2)
         self.context_prior = context_prior
         self.flip = flip
+        self.load_pose = load_pose
         self.num_classes = 20
 
         self.voxel_origin = np.array((0, -25.6, -2))
@@ -67,15 +69,16 @@ class SemanticKITTI(Dataset):
 
         self.scans = []
         for sequence in self.sequences:
-            calib = self.read_calib(
-                osp.join(self.data_root, 'dataset', 'sequences', sequence, 'calib.txt'))
+            sequence_path = osp.join(self.data_root, 'dataset', 'sequences', sequence)
+            calib = self.read_calib(osp.join(sequence_path, 'calib.txt'))
             P = calib['P2']
             T_velo_2_cam = calib['Tr']
             proj_matrix = P @ T_velo_2_cam
+            if self.load_pose:
+                poses = self.parse_poses(osp.join(sequence_path, 'poses.txt'))
 
-            glob_path = osp.join(self.data_root, 'dataset', 'sequences', sequence, 'voxels',
-                                 '*.bin')
-            for voxel_path in glob.glob(glob_path):
+            glob_path = osp.join(sequence_path, 'voxels', '*.bin')
+            for voxel_path in sorted(glob.glob(glob_path)):
                 self.scans.append({
                     'sequence': sequence,
                     'P': P,
@@ -83,6 +86,9 @@ class SemanticKITTI(Dataset):
                     'proj_matrix': proj_matrix,
                     'voxel_path': voxel_path,
                 })
+                if self.load_pose:
+                    frame_id = osp.splitext(osp.basename(voxel_path))[0]
+                    self.scans[-1]['pose'] = poses[int(frame_id)]
 
         self.transforms = T.Compose([
             T.ToTensor(),
@@ -145,6 +151,9 @@ class SemanticKITTI(Dataset):
                 depth = np.flip(depth, axis=1).copy()
             data['depth'] = depth
 
+        if self.load_pose:
+            data['pose'] = scan['pose']
+
         # Compute the masks, each indicate the voxels of a local frustum
         if self.split != 'test':
             frustums_masks, frustums_class_dists = compute_local_frustums(
@@ -181,15 +190,26 @@ class SemanticKITTI(Dataset):
     @staticmethod
     def read_calib(calib_path):
         calib_data = {}
-        with open(calib_path, 'r') as f:
-            for line in f.readlines():
+        with open(calib_path) as f:
+            for line in f:
                 if line == '\n':
                     break
-                key, value = line.split(':', 1)
-                calib_data[key] = np.array([float(x) for x in value.split()])
+                key, value = line.strip().split(':', 1)
+                calib_data[key] = np.array([float(v) for v in value.split()])
 
         ret = {}
         ret['P2'] = calib_data['P2'].reshape(3, 4)  # 3x4 projection matrix for left camera
         ret['Tr'] = np.identity(4)
         ret['Tr'][:3, :4] = calib_data['Tr'].reshape(3, 4)
         return ret
+
+    def parse_poses(self, filename):
+        poses = []
+        with open(filename) as f:
+            for line in f:
+                pose = np.zeros((4, 4))
+                values = [float(v) for v in line.strip().split()]
+                pose[:3] = np.array(values).reshape((3, 4))
+                pose[3, 3] = 1.0
+                poses.append(pose)
+        return poses
