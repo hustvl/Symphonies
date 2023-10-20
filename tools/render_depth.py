@@ -2,13 +2,14 @@ import os
 
 import hydra
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from omegaconf import DictConfig, OmegaConf
 from rich.progress import track
 from ssc_pl import LitModule, build_data_loaders, generate_grid, pre_build_callbacks, render_depth
 
 
-@hydra.main(version_base=None, config_path='../configs', config_name='config')
+@hydra.main(config_path='../configs', config_name='config', version_base=None)
 def main(cfg: DictConfig):
     if os.environ.get('LOCAL_RANK', 0) == 0:
         print(OmegaConf.to_yaml(cfg))
@@ -36,7 +37,7 @@ def main(cfg: DictConfig):
             outputs = model(batch_inputs)
 
             logits = outputs['ssc_logits']  # (B, C, X, Y, Z)
-            target = targets['target'].cuda()
+            target = targets['target'].cuda() if 'target' in targets else None
             K = batch_inputs['cam_K']  # (B, 3, 3)
             E = batch_inputs['cam_pose']  # (B, 4, 4)
             vox_origin = batch_inputs['voxel_origin']  # (B, 3)
@@ -59,8 +60,6 @@ def main(cfg: DictConfig):
 
 def draw_depth(depth_map, path):
     depth_map = depth_map.squeeze().cpu().numpy()
-    plt.imshow(depth_map, cmap='jet')
-    plt.colorbar()
     plt.imsave(path, depth_map, cmap='jet')
 
 

@@ -123,10 +123,6 @@ def cam2pix(p_cam, K, image_shape):
     Return:
         p_pix: (bs, H*W, 2)
     """
-    assert p_cam.size(1) == 3
-    assert K.size(-1) in (3, 4)
-    if K.size(-1) == 4:
-        p_cam = F.pad(p_cam, (0, 0, 0, 1), value=1)
     p_pix = K @ p_cam / p_cam[:, 2]  # .clamp(min=1e-3)
     p_pix = p_pix[:, :2].transpose(1, 2) / (torch.tensor(image_shape[::-1]).to(p_pix) - 1)
     return p_pix
@@ -179,7 +175,8 @@ def inverse_warp(img, image_grid, depth, pose, K, padding_mode='zeros'):
     pose: (B, 3, 4)
     """
     p_cam = pix2cam(image_grid, depth.unsqueeze(1), K)
-    p_pix = cam2pix(p_cam, K @ pose, img.shape[2:])
+    p_cam = (pose @ F.pad(p_cam, (0, 0, 0, 1), value=1))[:, :3]
+    p_pix = cam2pix(p_cam, K, img.shape[2:])
     p_pix = p_pix.reshape(*depth.shape, 2) * 2 - 1
     projected_img = F.grid_sample(img, p_pix, padding_mode=padding_mode)
     valid_mask = p_pix.abs().max(dim=-1)[0] <= 1

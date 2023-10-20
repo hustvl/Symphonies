@@ -46,6 +46,7 @@ class SemanticKITTI(Dataset):
         context_prior=False,
         flip=True,
         load_pose=False,
+        load_only_with_target=True,
     ):
         super().__init__()
         self.data_root = data_root
@@ -77,7 +78,10 @@ class SemanticKITTI(Dataset):
             if self.load_pose:
                 poses = self.parse_poses(osp.join(sequence_path, 'poses.txt'))
 
-            glob_path = osp.join(sequence_path, 'voxels', '*.bin')
+            if load_only_with_target:
+                glob_path = osp.join(sequence_path, 'voxels', '*.bin')
+            else:
+                glob_path = osp.join(sequence_path, 'image_2', '*.png')
             for voxel_path in sorted(glob.glob(glob_path)):
                 self.scans.append({
                     'sequence': sequence,
@@ -131,8 +135,9 @@ class SemanticKITTI(Dataset):
             data[f'fov_mask_{scale_3d}'] = fov_mask
 
         flip = random.random() > 0.5 if self.flip and self.split == 'train' else False
-        if self.split != 'test':
-            target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
+        target_1_path = osp.join(self.label_root, sequence, frame_id + '_1_1.npy')
+        with_target = self.split != 'test' and osp.exists(target_1_path)
+        if with_target:
             target = np.load(target_1_path)
             if flip:
                 target = np.flip(target, axis=1).copy()
@@ -140,9 +145,12 @@ class SemanticKITTI(Dataset):
 
         if self.context_prior:
             target_8_path = osp.join(self.label_root, sequence, frame_id + '_1_8.npy')
-            target_1_8 = np.load(target_8_path)
-            CP_mega_matrix = compute_CP_mega_matrix(target_1_8)
-            label['CP_mega_matrix'] = CP_mega_matrix
+            if osp.exists(target_8_path):
+                target_1_8 = np.load(target_8_path)
+                if flip:
+                    target_1_8 = np.flip(target_1_8, axis=1).copy()
+                CP_mega_matrix = compute_CP_mega_matrix(target_1_8)
+                label['CP_mega_matrix'] = CP_mega_matrix
 
         if self.depth_root is not None:
             depth_path = osp.join(self.depth_root, 'sequences', sequence, frame_id + '.npy')
@@ -155,7 +163,7 @@ class SemanticKITTI(Dataset):
             data['pose'] = scan['pose']
 
         # Compute the masks, each indicate the voxels of a local frustum
-        if self.split != 'test':
+        if with_target:
             frustums_masks, frustums_class_dists = compute_local_frustums(
                 data[f'projected_pix_{self.output_scale}'],
                 data[f'pix_z_{self.output_scale}'],
@@ -204,11 +212,13 @@ class SemanticKITTI(Dataset):
         return ret
 
     def parse_poses(self, filename):
+        """Returns T_cam_2_cam actually, different from the original implementation in SemanticKITTI API
+        """
         poses = []
         with open(filename) as f:
             for line in f:
-                pose = np.zeros((4, 4))
                 values = [float(v) for v in line.strip().split()]
+                pose = np.zeros((4, 4))
                 pose[:3] = np.array(values).reshape((3, 4))
                 pose[3, 3] = 1.0
                 poses.append(pose)

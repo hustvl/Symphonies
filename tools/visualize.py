@@ -135,7 +135,7 @@ def draw(
         mlab.show()
 
 
-@hydra.main(version_base=None, config_path='../configs', config_name='config')
+@hydra.main(config_path='../configs', config_name='config', version_base=None)
 def main(config: DictConfig):
     files = ([os.path.join(config.path, f)
               for f in os.listdir(config.path)] if os.path.isdir(config.path) else [config.path])

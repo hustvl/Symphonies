@@ -11,7 +11,7 @@ from rich.progress import track
 from ssc_pl import LitModule, build_data_loaders, pre_build_callbacks
 
 
-@hydra.main(version_base=None, config_path='../configs', config_name='config')
+@hydra.main(config_path='../configs', config_name='config', version_base=None)
 def main(cfg: DictConfig):
     cfg, _ = pre_build_callbacks(cfg)
 
