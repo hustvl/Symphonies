@@ -30,6 +30,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ## News
 
+* ***Nov 22***: We have updated our paper on [arXiv](https://arxiv.org/abs/2306.15670) with the latest results.
 * ***Sep 18***: We have achieved state-of-the-art results on the recently published SSCBench-KITTI-360 benchmark.
 * ***Jun 28***: We have released the [arXiv paper](https://arxiv.org/abs/2306.15670) of Symphonies.
 
