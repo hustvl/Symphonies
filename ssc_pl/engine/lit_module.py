@@ -32,8 +32,12 @@ class LitModule(L.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self._step(batch, self.train_evaluator)
-        self.log('train/loss', {'loss_total': sum(loss.values()), **loss})
-        return sum(list(loss.values())) if isinstance(loss, dict) else loss
+        if isinstance(loss, dict):
+            loss['loss_total'] = sum(loss.values())
+            self.log_dict({f'train/{k}': v for k, v in loss.items()})
+        else:
+            self.log('train/loss', loss)
+        return sum(loss.values()) if isinstance(loss, dict) else loss
 
     def validation_step(self, batch, batch_idx):
         self._shared_eval(batch, 'val')
@@ -45,7 +49,12 @@ class LitModule(L.LightningModule):
         loss = self._step(batch, self.test_evaluator)
         # Lightning automatically accumulates the metric and averages it
         # if `self.log` is inside the `validation_step` and `test_step`
-        self.log(f'{prefix}/loss', loss, sync_dist=True)
+
+        if isinstance(loss, dict):
+            loss['loss_total'] = sum(loss.values())
+            self.log_dict({f'{prefix}/{k}': v for k, v in loss.items()}, sync_dist=True)
+        else:
+            self.log(f'{prefix}/loss', loss, sync_dist=True)
 
     def on_train_epoch_end(self):
         self._log_metrics(self.train_evaluator, 'train')
@@ -53,7 +62,7 @@ class LitModule(L.LightningModule):
     def on_validation_epoch_end(self):
         self._log_metrics(self.test_evaluator, 'val')
 
-    def on_test_epoch_end(self) -> None:
+    def on_test_epoch_end(self):
         self._log_metrics(self.test_evaluator, 'test')
 
     def _log_metrics(self, evaluator, prefix=None):
@@ -64,10 +73,11 @@ class LitModule(L.LightningModule):
         self.log_dict(metrics, sync_dist=True)
 
         if hasattr(self, 'class_names'):
-            self.log(
-                prefix + '_iou_per_cls',
-                {c: s.item()
-                 for c, s in zip(self.class_names, iou_per_class)},
+            self.log_dict(
+                {
+                    f'{prefix}/iou_{c}': s.item()
+                    for c, s in zip(self.class_names, iou_per_class)
+                },
                 sync_dist=True)
         evaluator.reset()
 

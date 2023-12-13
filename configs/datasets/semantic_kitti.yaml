@@ -6,7 +6,7 @@ data:
     splits: [train, val, test]
     data_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin
     label_root: /horizon-bucket/aidi_public_data/SemanticKitti/origin/processed/labels
-    depth_root: /home/users/haoyi.jiang/data/kitti_depth
+    depth_root: /horizon-bucket/qiwu1_0/users/haoyi.jiang/data/semantic_kitti/depth
     frustum_size: 8
   loader:
     batch_size: 1

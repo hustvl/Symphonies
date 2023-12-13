@@ -81,6 +81,8 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 2. **Testing**
 
+    Generate the outputs for submission on the evaluation server:
+
     ```shell
     python tools/test.py [+ckpt_path=...]
     ```
@@ -121,7 +123,7 @@ If you find our paper and code useful for your research, please consider giving 
 ```BibTeX
 @article{jiang2023symphonies,
       title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries},
-      author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Wenyu Liu and Xinggang Wang},
+      author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Tianwei Lin and Wenyu Liu and Xinggang Wang},
       journal={arXiv preprint arXiv:2306.15670},
       year={2023}
 }
