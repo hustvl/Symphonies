@@ -7,6 +7,7 @@
 [Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1,✢</sup>,
 Naiyu Gao<sup>2</sup>,
 Haoyang Zhang<sup>2</sup>,
+[Tianwei Lin](https://wzmsltw.github.io/)<sup>2</sup>,
 [Wenyu Liu](http://eic.hust.edu.cn/professor/liuwenyu/)<sup>1</sup>,
 [Xinggang Wang](https://xwcv.github.io/)<sup>1,✉️</sup>
 <br>
