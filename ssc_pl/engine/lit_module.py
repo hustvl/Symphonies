@@ -2,6 +2,7 @@ import lightning as L
 import torch.nn as nn
 import torch.optim as optim
 from omegaconf import open_dict
+from torch.cuda.amp import autocast
 
 from .. import build_from_configs, evaluation, models
 
@@ -25,7 +26,8 @@ class LitModule(L.LightningModule):
     def _step(self, batch, evaluator=None):
         x, y = batch
         pred = self(x)
-        loss = self.criterion(pred, y)
+        with autocast(enabled=False):
+            loss = self.criterion(pred, y)
         if evaluator:
             evaluator.update(pred, y)
         return loss
@@ -91,12 +93,14 @@ class LitModule(L.LightningModule):
             pgs = [[] for _ in paramwise_cfg]
 
             for k, v in self.named_parameters():
+                in_param_group = False
                 for i, pg_cfg in enumerate(paramwise_cfg):
                     if 'name' in pg_cfg and pg_cfg.name in k:
                         pgs[i].append(v)
+                        in_param_group = True
                     # USER: Customize more cfgs if needed
-                    else:
-                        params.append(v)
+                if not in_param_group:
+                    params.append(v)
         else:
             params = self.parameters()
         optimizer = build_from_configs(optim, optimizer_cfg, params=params)

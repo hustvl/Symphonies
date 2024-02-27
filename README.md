@@ -1,18 +1,23 @@
+<div align="center">
+
 # Symphonies (Scene-from-Insts) 🎻
 
+### [Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](https://arxiv.org/abs/2306.15670)
 
-### **[Symphonize 3D Semantic Scene Completion with Contextual Instance Queries](https://arxiv.org/abs/2306.15670)**
-
-[Haoyi Jiang](https://github.com/npurson)<sup>1,✢</sup>,
-[Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ)<sup>1,✢</sup>,
-Naiyu Gao<sup>2</sup>,
-Haoyang Zhang<sup>2</sup>,
-[Tianwei Lin](https://wzmsltw.github.io/)<sup>2</sup>,
-[Wenyu Liu](http://eic.hust.edu.cn/professor/liuwenyu/)<sup>1</sup>,
-[Xinggang Wang](https://xwcv.github.io/)<sup>1,✉️</sup>
+[Haoyi Jiang](https://github.com/npurson) <sup>1,✢</sup>,
+[Tianheng Cheng](https://scholar.google.com/citations?user=PH8rJHYAAAAJ) <sup>1,✢</sup>,
+Naiyu Gao <sup>2</sup>,
+Haoyang Zhang <sup>2</sup>,
+[Tianwei Lin](https://wzmsltw.github.io/) <sup>2</sup>,
+[Wenyu Liu](http://eic.hust.edu.cn/professor/liuwenyu/) <sup>1</sup>,
+[Xinggang Wang](https://xwcv.github.io/) <sup>1,✉️</sup>
 <br>
-<sup>1</sup>[School of EIC, HUST](http://english.eic.hust.edu.cn/),
-<sup>2</sup>[Horizon Robotics](https://en.horizonrobotics.com/)
+<sup>1</sup> [School of EIC, HUST](http://english.eic.hust.edu.cn/),
+<sup>2</sup> [Horizon Robotics](https://en.horizonrobotics.com/)
+
+**CVPR 2024**
+
+</div>
 
 [![arXiv](https://img.shields.io/badge/arXiv-2306.15670-red?logo=arXiv&logoColor=red)](https://arxiv.org/abs/2306.15670)
 [![License: MIT](https://img.shields.io/github/license/hustvl/symphonies)](LICENSE)
@@ -29,11 +34,16 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ![vis](assets/vis.png)
 
+<video controls>
+    <source src="asserts/demo.mp4" type="video/mp4">
+</video>
+
 ## News
 
-* ***Nov 22***: We have updated our paper on [arXiv](https://arxiv.org/abs/2306.15670) with the latest results.
-* ***Sep 18***: We have achieved state-of-the-art results on the recently published SSCBench-KITTI-360 benchmark.
-* ***Jun 28***: We have released the [arXiv paper](https://arxiv.org/abs/2306.15670) of Symphonies.
+* ***Feb 27 '24***: **Our paper has been accepted at CVPR 2024. 🎉**
+* ***Nov 22 '23***: We have updated our paper on [arXiv](https://arxiv.org/abs/2306.15670) with the latest results.
+* ***Sep 18 '23***: We have achieved state-of-the-art results on the recently published SSCBench-KITTI-360 benchmark.
+* ***Jun 28 '23***: We have released the [arXiv paper](https://arxiv.org/abs/2306.15670) of Symphonies.
 
 ## Preliminary
 
@@ -99,7 +109,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     2. Visualization
 
         ```shell
-        python tools/generate_outputs.py [+path=...]
+        python tools/visualize.py [+path=...]
         ```
 
 ## Results
@@ -125,8 +135,8 @@ If you find our paper and code useful for your research, please consider giving 
 @article{jiang2023symphonies,
       title={Symphonize 3D Semantic Scene Completion with Contextual Instance Queries},
       author={Haoyi Jiang and Tianheng Cheng and Naiyu Gao and Haoyang Zhang and Tianwei Lin and Wenyu Liu and Xinggang Wang},
-      journal={arXiv preprint arXiv:2306.15670},
-      year={2023}
+      journal={CVPR},
+      year={2024}
 }
 ```
 
