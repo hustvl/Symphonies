@@ -34,9 +34,7 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 ![vis](assets/vis.png)
 
-<video controls>
-    <source src="asserts/demo.mp4" type="video/mp4">
-</video>
+![vis](assets/demo.gif)
 
 ## News
 
