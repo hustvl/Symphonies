@@ -67,6 +67,10 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
 
 1. Refer to https://github.com/ai4ce/SSCBench/tree/main/dataset/KITTI-360.
 
+### Pretrained Weights
+
+The pretrained weight of MaskDINO can be downloaded [here](https://github.com/hustvl/Symphonies/releases/download/v1.0/maskdino_r50_50e_300q_panoptic_pq53.0.pth).
+
 ## Usage
 
 0. **Setup**
