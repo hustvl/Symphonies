@@ -15,7 +15,7 @@ Haoyang Zhang <sup>2</sup>,
 <sup>1</sup> [School of EIC, HUST](http://english.eic.hust.edu.cn/),
 <sup>2</sup> [Horizon Robotics](https://en.horizonrobotics.com/)
 
-**CVPR 2024**
+[**CVPR 2024**](https://openaccess.thecvf.com/content/CVPR2024/papers/Jiang_Symphonize_3D_Semantic_Scene_Completion_with_Contextual_Instance_Queries_CVPR_2024_paper.pdf)
 
 </div>
 
