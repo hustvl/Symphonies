@@ -55,17 +55,19 @@ This project is built upon ***[TmPL](https://github.com/npurson/tmpl)***, a temp
     pip install -r requirements.txt
     ```
 
-### Prepare Dataset
+### Dataset Preparation
 
-#### SemanticKITTI
+#### 1. Download the Data
 
-1. Download the RGB images, calibration files, and preprocess the labels, referring to the documentation of [VoxFormer](https://github.com/NVlabs/VoxFormer/blob/main/docs/prepare_dataset.md) or [MonoScene](https://github.com/astra-vision/MonoScene#semantickitti).
+**SemanticKITTI:** Download the RGB images, calibration files, and preprocess the labels, referring to the documentation of [VoxFormer](https://github.com/NVlabs/VoxFormer/blob/main/docs/prepare_dataset.md) or [MonoScene](https://github.com/astra-vision/MonoScene#semantickitti).
 
-2. Generate depth predications with pre-trained MobileStereoNet referring to VoxFormer https://github.com/NVlabs/VoxFormer/tree/main/preprocess#3-image-to-depth.
+**SSCBench-KITTI-360:** Refer to https://github.com/ai4ce/SSCBench/tree/main/dataset/KITTI-360.
 
-#### SSCBench-KITTI-360
+#### 2. Generate Depth Predications
 
-1. Refer to https://github.com/ai4ce/SSCBench/tree/main/dataset/KITTI-360.
+**SemanticKITTI:** Generate depth predications with pre-trained MobileStereoNet referring to VoxFormer https://github.com/NVlabs/VoxFormer/tree/main/preprocess#3-image-to-depth.
+
+**SSCBench-KITTI-360:** Follow the same procedure as SemanticKITTI but ensure to [adapt the disparity value](https://github.com/ai4ce/SSCBench/issues/8#issuecomment-1674607576).
 
 ### Pretrained Weights
 
